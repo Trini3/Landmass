@@ -241,7 +241,7 @@ public final class ClimateHooks {
         // world height. Continents only move land and sea; shores are shaped only with coastline features on. Biome Size
         // (like Large Biomes) and the Coast Size Override stretch vanilla's noises, so they resize terrain features too.
         boolean coastline = world.coastline();
-        Continents continents = world.continents().enabled() ? new Continents(world.effectiveContinents(), seed, world.coastScale() * world.biomeScale(), false) : null;
+        Continents continents = world.continents().enabled() ? new Continents(world.effectiveContinents(), seed, world.coastScale() * world.terrainBiomeScale(), false) : null;
         // Individual biomes: local humidity patches and local temperature changes. Humidity zones are the bigger regions around them.
         double biomeSize = world.biomeScale();
         DensityFunction humidity = humidity(original.vegetation(), world, 1.0);
@@ -277,7 +277,7 @@ public final class ClimateHooks {
         }
         // Biome Size works like Large Biomes: continentalness and erosion are stretched for terrain and biomes alike, so the
         // biomes keep matching the land. The Coast Size Override multiplies the continentalness stretch.
-        router = BiomeScale.apply(router, world.coastScale() * world.biomeScale(), world.biomeScale());
+        router = BiomeScale.apply(router, world.coastScale() * world.terrainBiomeScale(), world.terrainBiomeScale());
         Optional<Aquifer.Config> aquifers = settings.aquifers();
         if (!world.features().aquifers()) {
             // Constant -1 makes every aquifer empty: no water at its own level in dips and caves, no flooded caves, no deep lava.
@@ -285,7 +285,7 @@ public final class ClimateHooks {
             aquifers = aquifers.map(config -> new Aquifer.Config(config.barrierNoise(), DensityFunctions.constant(-1.0F), config.fluidLevelSpreadNoise(),
                     config.lavaNoise(), config.exclusion(), config.surfaceLevel()));
         }
-        if (continents != null || world.coast().isPresent() || world.biomeScale() != 1.0) {
+        if (continents != null || world.coast().isPresent() || world.terrainBiomeScale() != 1.0) {
             // The aquifers' own functions sample the terrain's noises too, so they follow the continents and biome sizes.
             aquifers = aquifers.map(config -> rewriteAquifer(config, continents, world));
         }
@@ -310,7 +310,7 @@ public final class ClimateHooks {
         if (continents != null) {
             parts = continents.apply(parts);
         }
-        parts = BiomeScale.apply(parts, world.coastScale() * world.biomeScale(), world.biomeScale());
+        parts = BiomeScale.apply(parts, world.coastScale() * world.terrainBiomeScale(), world.terrainBiomeScale());
         return new Aquifer.Config(parts.temperature(), parts.vegetation(), parts.continents(), parts.erosion(), parts.depth(), parts.ridges());
     }
 }

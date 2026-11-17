@@ -126,6 +126,7 @@ public class CustomizeTerrainScreen extends Screen {
     private ContinentLayout continents;
     private boolean coastline;
     private boolean coastOverride;
+    private boolean biomeTerrain;
     private double coastScale;
     private WorldFeatures features;
     private Optional<BlockPos> spawn;
@@ -176,6 +177,7 @@ public class CustomizeTerrainScreen extends Screen {
         this.continents = initial.continents();
         this.coastline = initial.coastline();
         this.coastOverride = initial.coast().isPresent();
+        this.biomeTerrain = initial.biomeTerrain();
         this.coastScale = initial.coastScale();
         this.features = initial.features();
 
@@ -491,6 +493,7 @@ public class CustomizeTerrainScreen extends Screen {
                 this.addToggle(left, 1, 1, feature + "aquifers", this.features.aquifers(), on -> this.features = this.features.withAquifers(on));
                 this.addToggle(left, 2, 0, feature + "springs", this.features.springs(), on -> this.features = this.features.withSprings(on));
                 this.addSwitch(left, 3, KEY + "coast_override", this.coastOverride, () -> this.coastOverride = !this.coastOverride);
+                this.addSwitch(left, 5, KEY + "biome_terrain", this.biomeTerrain, () -> this.biomeTerrain = !this.biomeTerrain);
             }
             case STRUCTURES -> {
                 WorldFeatures.StructureGroup[] groups = WorldFeatures.StructureGroup.values();
@@ -698,7 +701,7 @@ public class CustomizeTerrainScreen extends Screen {
         }
         return chosen.withHumidityScale(this.humidityScale).withBiomeScale(this.biomeScale).withDeviation(this.deviation)
                 .withContinents(this.continents).withCoastline(this.coastline)
-                .withCoast(this.coastOverride ? Optional.of(this.coastScale) : Optional.empty()).withFeatures(this.features);
+                .withCoast(this.coastOverride ? Optional.of(this.coastScale) : Optional.empty()).withBiomeTerrain(this.biomeTerrain).withFeatures(this.features);
     }
 
     private void applyAndClose() {

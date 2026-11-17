@@ -29,7 +29,7 @@ Pick **Landmass Terrain** as the world type and press **Customize**. The section
   small islands) and **Coasts** (Coastline features on/off, then land bridges, sand bars, straits, erosion and
   shores).
 - **Terrain**: switch off ravines, carver caves, lava lakes, aquifers or springs; Coast Size Override on/off with its
-  coast size.
+  coast size; Biome Size Scales Terrain on/off.
 - **Structures**: switch off vanilla structure groups.
 
 Each number setting has a slider and a box for an exact number. The slider covers the recommended range; typed
@@ -49,6 +49,8 @@ datapacks such as Lithosphere or Streams Reflowing keep shaping the surface:
 
 - With **Custom Landmass Generation** off, land and oceans are vanilla's or the terrain mod's own.
 - Coast width is only changed while **Coast Size Override** is on.
+- With **Biome Size Scales Terrain** off, Biome Size only resizes humidity and temperature patches and leaves the terrain
+  noises alone (for mods that override continentalness/erosion or don't want mountains stretched).
 - Shore shaping (steering erosion/weirdness near coasts) and gravel beaches only run with **Coastline
   features** on.
 - Island biome size only resizes humidity and temperature patches, never erosion.
@@ -81,4 +83,5 @@ that checks the climate bands and prints `LANDMASS SELF-TEST PASSED`.
   (terrain and biome choice alike), plus local humidity/temperature. Stretching only the biome-picking erosion (0.3.0)
   looked like it did nothing in testing and made biomes stop matching the land, so it was reverted in 0.3.1. Big values
   (Realistic's 2500%) also stretch mountain ranges, including a terrain mod's if it samples vanilla's noises. The Coast
-  Size Override multiplies the continentalness stretch. In hot bands mountains show as badlands (vanilla's hot peaks).
+  Size Override multiplies the continentalness stretch. Biome Size Scales Terrain (`biome_terrain_scaling`, default on,
+  kept by presets) turns the stretch off. In hot bands mountains show as badlands (vanilla's hot peaks).

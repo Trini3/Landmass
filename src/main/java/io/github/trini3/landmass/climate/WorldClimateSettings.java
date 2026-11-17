@@ -41,7 +41,8 @@ import java.util.stream.Collectors;
  * changes can't put seams into terrain that already exists.
  *
  * <p>{@code humidityScale} resizes humidity zones: 2 makes them twice as big as vanilla's, 0.5 half as big.
- * {@code biomeScale} resizes individual biomes (local humidity patches and temperature changes, see {@link HumidityBlend}).
+ * {@code biomeScale} resizes biomes: humidity patches and temperature changes (see {@link HumidityBlend}), and with
+ * {@code biomeTerrain} also vanilla's continentalness and erosion, like Large Biomes.
  * {@code continents} places the land when Custom Landmass Generation is on; {@code coastline} false leaves out its coastline
  * features (land bridges, sand bars, straits, coastal erosion, shores). {@code coast} is the Coast Size Override: empty leaves
  * coast size to vanilla or the installed terrain mod. {@code features} lists the terrain features and structures left out.
@@ -51,7 +52,7 @@ import java.util.stream.Collectors;
  */
 public record WorldClimateSettings(boolean enabled, List<ResourceKey<Level>> dimensions, LatitudeLayout latitude, double humidityScale,
                                    double biomeScale, ContinentLayout continents, boolean coastline, Optional<Double> coast,
-                                   WorldFeatures features, ClimateDeviation deviation) {
+                                   WorldFeatures features, ClimateDeviation deviation, boolean biomeTerrain) {
     public static final String FILE_NAME = Landmass.MODID + "-climate.json";
     /** Roughly how far apart changes in humidity are in vanilla, measured along straight lines: about 375 blocks. */
     public static final int VANILLA_HUMIDITY_ZONE = 400;
@@ -72,7 +73,8 @@ public record WorldClimateSettings(boolean enabled, List<ResourceKey<Level>> dim
             CodecUtil.field(Codec.BOOL, "coastline_features", true).forGetter(WorldClimateSettings::coastline),
             Codec.doubleRange(MIN_SIZE_SCALE, MAX_SIZE_SCALE).optionalFieldOf("coast_scale").forGetter(WorldClimateSettings::coast),
             CodecUtil.field(WorldFeatures.CODEC, "features", WorldFeatures.DEFAULT).forGetter(WorldClimateSettings::features),
-            CodecUtil.field(ClimateDeviation.CODEC, "deviation", ClimateDeviation.OFF).forGetter(WorldClimateSettings::deviation)
+            CodecUtil.field(ClimateDeviation.CODEC, "deviation", ClimateDeviation.OFF).forGetter(WorldClimateSettings::deviation),
+            CodecUtil.field(Codec.BOOL, "biome_terrain_scaling", true).forGetter(WorldClimateSettings::biomeTerrain)
     ).apply(instance, WorldClimateSettings::new));
 
     private static final Gson GSON = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
@@ -81,7 +83,8 @@ public record WorldClimateSettings(boolean enabled, List<ResourceKey<Level>> dim
             + "polar_distance is in blocks from the equator. poles is repeat (past each pole the zones come back in reverse) or frozen. "
             + "zones are relative sizes: hot, warm, temperate and cold fill polar_distance, and frozen reaches from there to the pole. "
             + "border_wander and border_mixing are in blocks. humidity_scale resizes humidity zones (2 = twice vanilla's size). "
-            + "biome_scale resizes individual biomes: local humidity patches and temperature changes (2 = twice vanilla's size). "
+            + "biome_scale resizes biomes (2 = twice vanilla's size); with biome_terrain_scaling true it works like Large Biomes and "
+            + "stretches vanilla's continentalness and erosion noises too, false only resizes humidity and temperature patches. "
             + "continents: enabled is Custom Landmass Generation (false keeps the land and oceans of vanilla or the installed terrain mod); "
             + "sizes are in blocks, land_share is the part of the world that is land (0.35 = 35%), the amounts say how common large islands and "
             + "archipelagos are (1 = the usual number, 0 = none), island_biome_scale is the size of biomes on islands compared with continents. "
@@ -97,7 +100,7 @@ public record WorldClimateSettings(boolean enabled, List<ResourceKey<Level>> dim
 
     public WorldClimateSettings withDeviation(ClimateDeviation deviation) {
         return new WorldClimateSettings(this.enabled, this.dimensions, this.latitude, this.humidityScale, this.biomeScale, this.continents,
-                this.coastline, this.coast, this.features, deviation);
+                this.coastline, this.coast, this.features, deviation, this.biomeTerrain);
     }
 
     /** These settings with roughly this share of the hot zone desert; see {@link LatitudeLayout#withDesertShare}. */
@@ -117,38 +120,49 @@ public record WorldClimateSettings(boolean enabled, List<ResourceKey<Level>> dim
 
     public WorldClimateSettings withLatitude(LatitudeLayout latitude) {
         return new WorldClimateSettings(this.enabled, this.dimensions, latitude, this.humidityScale, this.biomeScale, this.continents,
-                this.coastline, this.coast, this.features, this.deviation);
+                this.coastline, this.coast, this.features, this.deviation, this.biomeTerrain);
     }
 
     public WorldClimateSettings withHumidityScale(double humidityScale) {
         return new WorldClimateSettings(this.enabled, this.dimensions, this.latitude, humidityScale, this.biomeScale, this.continents,
-                this.coastline, this.coast, this.features, this.deviation);
+                this.coastline, this.coast, this.features, this.deviation, this.biomeTerrain);
     }
 
     public WorldClimateSettings withBiomeScale(double biomeScale) {
         return new WorldClimateSettings(this.enabled, this.dimensions, this.latitude, this.humidityScale, biomeScale, this.continents,
-                this.coastline, this.coast, this.features, this.deviation);
+                this.coastline, this.coast, this.features, this.deviation, this.biomeTerrain);
     }
 
     public WorldClimateSettings withContinents(ContinentLayout continents) {
         return new WorldClimateSettings(this.enabled, this.dimensions, this.latitude, this.humidityScale, this.biomeScale, continents,
-                this.coastline, this.coast, this.features, this.deviation);
+                this.coastline, this.coast, this.features, this.deviation, this.biomeTerrain);
     }
 
     public WorldClimateSettings withCoastline(boolean coastline) {
         return new WorldClimateSettings(this.enabled, this.dimensions, this.latitude, this.humidityScale, this.biomeScale, this.continents,
-                coastline, this.coast, this.features, this.deviation);
+                coastline, this.coast, this.features, this.deviation, this.biomeTerrain);
     }
 
     /** These settings with the Coast Size Override on at this scale, or off (empty). */
     public WorldClimateSettings withCoast(Optional<Double> coast) {
         return new WorldClimateSettings(this.enabled, this.dimensions, this.latitude, this.humidityScale, this.biomeScale, this.continents,
-                this.coastline, coast, this.features, this.deviation);
+                this.coastline, coast, this.features, this.deviation, this.biomeTerrain);
     }
 
     public WorldClimateSettings withFeatures(WorldFeatures features) {
         return new WorldClimateSettings(this.enabled, this.dimensions, this.latitude, this.humidityScale, this.biomeScale, this.continents,
-                this.coastline, this.coast, features, this.deviation);
+                this.coastline, this.coast, features, this.deviation, this.biomeTerrain);
+    }
+
+    /** These settings with Biome Size stretching vanilla's terrain noises (like Large Biomes) or only the climate patches. */
+    public WorldClimateSettings withBiomeTerrain(boolean biomeTerrain) {
+        return new WorldClimateSettings(this.enabled, this.dimensions, this.latitude, this.humidityScale, this.biomeScale, this.continents,
+                this.coastline, this.coast, this.features, this.deviation, biomeTerrain);
+    }
+
+    /** How much Biome Size stretches vanilla's continentalness and erosion: the biome scale, or 1 with terrain scaling off. */
+    public double terrainBiomeScale() {
+        return this.biomeTerrain ? this.biomeScale : 1.0;
     }
 
     /** How much wider than vanilla's coasts are: the Coast Size Override, or 1 (vanilla's or the terrain mod's own) when it is off. */
@@ -263,6 +277,6 @@ public record WorldClimateSettings(boolean enabled, List<ResourceKey<Level>> dim
                 LatitudeLayout.DEFAULT_MEANDER,
                 LatitudeLayout.DEFAULT_DESERT_SHARE);
         return new WorldClimateSettings(true, List.copyOf(dimensions), layout, 1.0, 1.0, ContinentLayout.DEFAULT, true, Optional.empty(),
-                WorldFeatures.DEFAULT, ClimateDeviation.DEFAULT);
+                WorldFeatures.DEFAULT, ClimateDeviation.DEFAULT, true);
     }
 }
