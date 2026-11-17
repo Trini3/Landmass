@@ -85,3 +85,7 @@ that checks the climate bands and prints `LANDMASS SELF-TEST PASSED`.
   (Realistic's 2500%) also stretch mountain ranges, including a terrain mod's if it samples vanilla's noises. The Coast
   Size Override multiplies the continentalness stretch. Biome Size Scales Terrain (`biome_terrain_scaling`, default on,
   kept by presets) turns the stretch off. In hot bands mountains show as badlands (vanilla's hot peaks).
+- The L preset (0.4.0) sets its continent, island, archipelago and small island sizes by hand instead of scaling the
+  default's (no single land scale gives 16k-72k continents with 10k islands and 3k small islands); its land scale 2.8
+  still sizes coastal features. 0.4.0 also raised biome size, humidity zones and waviness for L to 3XL (old values in
+  WorldPresets).

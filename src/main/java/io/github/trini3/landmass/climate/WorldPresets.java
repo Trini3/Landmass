@@ -24,15 +24,21 @@ public enum WorldPresets {
     // Polar distance is from the equator to the frozen zone; Realistic's frozen zone then reaches the pole 10 million blocks out.
     // Mountain % is 100 everywhere for now: until the landscape overhaul, bigger values only lift
     // land high above coasts and rivers. Earlier values: 400, 300, 500, 800, 2500.
-    // land scale, polar distance, humidity zone (blocks), biome %, coast %, mountain %, land share, real-world zone proportions
-    DEFAULT(1.0, 100_000, 400, 100, 100, 100, 0.35, false),
-    VANILLA(1.0 / 6.0, 8_000, 400, 100, 100, 100, 0.5, false),
-    LARGE_BIOMES(4.0 / 6.0, 32_000, 1_600, 400, 400, 100, 0.5, false),
-    XL(4.0, 400_000, 2_500, 250, 300, 100, 0.35, false),
+    // land scale, polar distance, humidity zone (blocks), biome %, coast %, mountain %, land share, real-world zone proportions,
+    // band waviness, then for L its own sizes (continents, large islands, archipelagos, small islands) in place of the scaled ones
+    DEFAULT(1.0, 100_000, 400, 100, 100, 100, 0.35, false, LatitudeLayout.DEFAULT_WAVINESS),
+    VANILLA(1.0 / 6.0, 8_000, 400, 100, 100, 100, 0.5, false, LatitudeLayout.DEFAULT_WAVINESS),
+    LARGE_BIOMES(4.0 / 6.0, 32_000, 1_600, 400, 400, 100, 0.5, false, LatitudeLayout.DEFAULT_WAVINESS),
+    // Between Large Biomes and XL: landmasses 16,000 to 72,000 blocks, islands and archipelagos up to 10,000, small islands up to
+    // 3,000. The land scale (2.8, the middle of that continent range against the default's) sizes the coastal features.
+    L(2.8, 120_000, 3_000, 500, 400, 100, 0.35, false, 1.5,
+            new SizeRange(16_000, 72_000), new SizeRange(2_800, 10_000), new SizeRange(3_000, 10_000), new SizeRange(300, 3_000)),
+    // 2026-11-17: biome size, humidity zones and waviness raised for L to 3XL (were 250/2,500/1.0, 400/5,500/1.0, 600/12,000/1.0).
+    XL(4.0, 400_000, 5_000, 700, 300, 100, 0.35, false, 1.75),
     // Pole about 1.2 million blocks out (polar distance x 1.25); landmasses scaled to match, between XL and 3XL.
-    XXL(9.6, 960_000, 5_500, 400, 500, 100, 0.34, false),
-    XXXL(25.0, 2_500_000, 12_000, 600, 800, 100, 0.33, false),
-    REALISTIC(200.0, 7_400_000, 150_000, 2_500, 2_500, 100, 0.29, true);
+    XXL(9.6, 960_000, 10_000, 900, 500, 100, 0.34, false, 2.0),
+    XXXL(25.0, 2_500_000, 20_000, 1_200, 800, 100, 0.33, false, 2.5),
+    REALISTIC(200.0, 7_400_000, 150_000, 2_500, 2_500, 100, 0.29, true, LatitudeLayout.DEFAULT_WAVINESS);
 
     // Default sizes that are scaled.
     private static final ContinentLayout BASE = ContinentLayout.DEFAULT;
@@ -46,9 +52,26 @@ public enum WorldPresets {
     private final int mountainPercent;
     private final double landShare;
     private final boolean earthZones;
+    private final double waviness;
+    // Sizes chosen by hand instead of scaled from the default's; null = scaled.
+    private final SizeRange continentSize;
+    private final SizeRange largeIslandSize;
+    private final SizeRange archipelagoSize;
+    private final SizeRange islandSize;
 
     WorldPresets(double land, int polarDistance, int humidityZone, int biomePercent, int coastPercent, int mountainPercent, double landShare,
-                 boolean earthZones) {
+                 boolean earthZones, double waviness) {
+        this(land, polarDistance, humidityZone, biomePercent, coastPercent, mountainPercent, landShare, earthZones, waviness, null, null, null, null);
+    }
+
+    WorldPresets(double land, int polarDistance, int humidityZone, int biomePercent, int coastPercent, int mountainPercent, double landShare,
+                 boolean earthZones, double waviness, SizeRange continentSize, SizeRange largeIslandSize, SizeRange archipelagoSize,
+                 SizeRange islandSize) {
+        this.waviness = waviness;
+        this.continentSize = continentSize;
+        this.largeIslandSize = largeIslandSize;
+        this.archipelagoSize = archipelagoSize;
+        this.islandSize = islandSize;
         this.land = land;
         this.polarDistance = polarDistance;
         this.humidityZone = humidityZone;
@@ -80,7 +103,7 @@ public enum WorldPresets {
         double bandScale = this.polarDistance / (double) LatitudeLayout.DEFAULT_POLAR_DISTANCE;
         LatitudeLayout latitude = new LatitudeLayout(zoned.axis(), zoned.equator(), zoned.polarDistance(), zoned.poles(), zoned.zones(),
                 zoned.tropics(), zoned.desertStrength(), LatitudeLayout.DEFAULT_BORDER_WANDER * bandScale,
-                LatitudeLayout.DEFAULT_BORDER_MIXING * bandScale, zoned.localVariation(), zoned.customProfile(), LatitudeLayout.DEFAULT_WAVINESS,
+                LatitudeLayout.DEFAULT_BORDER_MIXING * bandScale, zoned.localVariation(), zoned.customProfile(), this.waviness,
                 LatitudeLayout.DEFAULT_MEANDER, LatitudeLayout.DEFAULT_DESERT_SHARE);
         // Landmass leaves coast size to vanilla or the terrain mod, so a preset keeps the Coast Size Override as it was, and keeps
         // Custom Landmass Generation and the coastline features switch too.
@@ -125,13 +148,15 @@ public enum WorldPresets {
                 COAST.bridgeIslets(), COAST.lagoonShare(), COAST.barIslets(), COAST.straitAmount(),
                 range(COAST.straitWidth(), this.grow(0.75), 30, CoastFeatures.MAX_STRAIT_WIDTH));
         return new ContinentLayout(true,
-                range(BASE.continentSize(), this.land, ContinentLayout.MIN_CONTINENT, ContinentLayout.MAX_CONTINENT),
+                this.continentSize != null ? this.continentSize : range(BASE.continentSize(), this.land, ContinentLayout.MIN_CONTINENT, ContinentLayout.MAX_CONTINENT),
                 this.landShare, BASE.islandBiomeScale(),
-                range(BASE.largeIslandSize(), this.land, ContinentLayout.MIN_LARGE_ISLAND, ContinentLayout.MAX_LARGE_ISLAND),
+                this.largeIslandSize != null ? this.largeIslandSize
+                        : range(BASE.largeIslandSize(), this.land, ContinentLayout.MIN_LARGE_ISLAND, ContinentLayout.MAX_LARGE_ISLAND),
                 BASE.largeIslandAmount(),
-                range(BASE.archipelagoSize(), this.land, ContinentLayout.MIN_ARCHIPELAGO, ContinentLayout.MAX_ARCHIPELAGO),
+                this.archipelagoSize != null ? this.archipelagoSize
+                        : range(BASE.archipelagoSize(), this.land, ContinentLayout.MIN_ARCHIPELAGO, ContinentLayout.MAX_ARCHIPELAGO),
                 BASE.archipelagoAmount(),
-                range(BASE.islandSize(), this.grow(0.6), 30, ContinentLayout.MAX_ISLAND),
+                this.islandSize != null ? this.islandSize : range(BASE.islandSize(), this.grow(0.6), 30, ContinentLayout.MAX_ISLAND),
                 coast, this.erosion())
                 // Stretches of one kind of shore grow with the coastline detail.
                 .withShores(Shores.DEFAULT.withStretch(clamp(Shores.DEFAULT.stretch() * this.grow(0.75), 300, Shores.MAX_STRETCH)));
