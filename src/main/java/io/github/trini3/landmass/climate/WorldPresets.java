@@ -110,7 +110,7 @@ public enum WorldPresets {
         return new WorldClimateSettings(base.enabled(), base.dimensions(), latitude,
                 this.humidityZone / (double) WorldClimateSettings.VANILLA_HUMIDITY_ZONE, this.biomePercent / 100.0,
                 this.continents().withEnabled(base.continents().enabled()), base.coastline(), base.coast(), WorldFeatures.DEFAULT,
-                this.deviation(), base.biomeTerrain());
+                this.deviation(), base.biomeTerrain(), base.lithosphereCompat());
     }
 
     /** How much wider than vanilla's this preset's coasts are (its coast_scale). */

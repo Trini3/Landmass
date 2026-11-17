@@ -241,7 +241,7 @@ public final class ClimateHooks {
         // world height. Continents only move land and sea; shores are shaped only with coastline features on. Biome Size
         // (like Large Biomes) and the Coast Size Override stretch vanilla's noises, so they resize terrain features too.
         boolean coastline = world.coastline();
-        Continents continents = world.continents().enabled() ? new Continents(world.effectiveContinents(), seed, world.coastScale() * world.terrainBiomeScale(), false) : null;
+        Continents continents = world.continents().enabled() ? new Continents(world.effectiveContinents(), seed, world.coastScale() * world.terrainBiomeScale(), false, world.lithosphereCompat()) : null;
         // Individual biomes: local humidity patches and local temperature changes. Humidity zones are the bigger regions around them.
         double biomeSize = world.biomeScale();
         DensityFunction humidity = humidity(original.vegetation(), world, 1.0);
@@ -277,7 +277,7 @@ public final class ClimateHooks {
         }
         // Biome Size works like Large Biomes: continentalness and erosion are stretched for terrain and biomes alike, so the
         // biomes keep matching the land. The Coast Size Override multiplies the continentalness stretch.
-        router = BiomeScale.apply(router, world.coastScale() * world.terrainBiomeScale(), world.terrainBiomeScale());
+        router = BiomeScale.apply(router, world.coastScale() * world.terrainBiomeScale(), world.terrainBiomeScale(), world.lithosphereCompat());
         Optional<Aquifer.Config> aquifers = settings.aquifers();
         if (!world.features().aquifers()) {
             // Constant -1 makes every aquifer empty: no water at its own level in dips and caves, no flooded caves, no deep lava.
@@ -310,7 +310,7 @@ public final class ClimateHooks {
         if (continents != null) {
             parts = continents.apply(parts);
         }
-        parts = BiomeScale.apply(parts, world.coastScale() * world.terrainBiomeScale(), world.terrainBiomeScale());
+        parts = BiomeScale.apply(parts, world.coastScale() * world.terrainBiomeScale(), world.terrainBiomeScale(), world.lithosphereCompat());
         return new Aquifer.Config(parts.temperature(), parts.vegetation(), parts.continents(), parts.erosion(), parts.depth(), parts.ridges());
     }
 }

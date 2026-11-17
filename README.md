@@ -89,3 +89,9 @@ that checks the climate bands and prints `LANDMASS SELF-TEST PASSED`.
   default's (no single land scale gives 16k-72k continents with 10k islands and 3k small islands); its land scale 2.8
   still sizes coastal features. 0.4.0 also raised biome size, humidity zones and waviness for L to 3XL (old values in
   WorldPresets).
+- Lithosphere Compatibility (0.4.1, `lithosphere_compatibility`, default off): Lithosphere builds its terrain from its own
+  `lithosphere:continentalness` noise, so Custom Landmass Generation and Biome Size's stretch (which match
+  `minecraft:continentalness`) never reached it. With the switch on, that noise is treated as Minecraft's. The fix on
+  Lithosphere's page (point noise_settings at its final_density) is for datapacks that replace noise_settings and doesn't
+  apply: Landmass edits the router that's already loaded. Lithosphere's erosion noises aren't mapped (names unknown;
+  worked out from a log because Modrinth is blocked in the cloud), so Biome Size doesn't widen its mountains.

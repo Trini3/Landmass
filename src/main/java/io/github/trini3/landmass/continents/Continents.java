@@ -39,6 +39,7 @@ public final class Continents implements DfRewriteRule {
     // Cached per column inside chunks, since the climate functions that blend by it are sampled at every height.
     private final DensityFunction islandness;
     private final boolean landscape;
+    private final List<ResourceKey<NormalNoise>> continentalness;
 
     /**
      * A world's continents.
@@ -51,6 +52,12 @@ public final class Continents implements DfRewriteRule {
 
     /** @param landscape false in compatibility mode: erosion (terrain shape) keeps one size everywhere instead of island scale out at sea */
     public Continents(ContinentLayout layout, long seed, double bandScale, boolean landscape) {
+        this(layout, seed, bandScale, landscape, false);
+    }
+
+    /** @param lithosphere also replace Lithosphere's own continentalness noise, so its terrain follows these continents */
+    public Continents(ContinentLayout layout, long seed, double bandScale, boolean landscape, boolean lithosphere) {
+        this.continentalness = lithosphere ? BiomeScale.continentalnessNoises(true) : CONTINENTALNESS;
         this.landscape = landscape;
         this.layout = layout;
         this.seed = seed;
@@ -102,7 +109,7 @@ public final class Continents implements DfRewriteRule {
 
     @Override
     public DensityFunction rewrite(DensityFunction function) {
-        if (BiomeScale.samplesNoise(function, CONTINENTALNESS)) {
+        if (BiomeScale.samplesNoise(function, this.continentalness)) {
             return new ContinentsFunction(function, this.layout, this.seed, this.bandScale, this.shapes);
         }
         if (this.landscape && this.splitsIslandBiomes() && BiomeScale.samplesNoise(function, EROSION)) {
