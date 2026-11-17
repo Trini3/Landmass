@@ -44,14 +44,14 @@ The settings are saved into the world at creation, then copied to
 ## Compatibility
 
 Landmass changes only the overworld (the `dimensions` list in the config), and only through the noise router's
-temperature, humidity and continentalness. It never changes world height or mountain ranges. Terrain mods and
+temperature, humidity and continentalness, plus Biome Size's Large Biomes-style stretch. It never changes world height. Terrain mods and
 datapacks such as Lithosphere or Streams Reflowing keep shaping the surface:
 
 - With **Custom Landmass Generation** off, land and oceans are vanilla's or the terrain mod's own.
 - Coast width is only changed while **Coast Size Override** is on.
 - Shore shaping (steering erosion/weirdness near coasts) and gravel beaches only run with **Coastline
   features** on.
-- Island biome size resizes only the erosion used for biome choice, never the terrain's.
+- Island biome size only resizes humidity and temperature patches, never erosion.
 
 ## Commands
 
@@ -77,8 +77,8 @@ that checks the climate bands and prints `LANDMASS SELF-TEST PASSED`.
   values are kept, so switching back on restores them.
 - Settings files from Trini's Terrain are not read (different mod id and file name).
 - 26.x text colours need alpha (0xFFxxxxxx); mouse buttons start at 1 (use InputConstants constants).
-- Biome Size resizes humidity and temperature patches and also the erosion the router picks biomes from (router.erosion
-  only; final density, depth and aquifers keep vanilla-size erosion), so badlands, windswept hills and similar grow while
-  terrain and Lithosphere-style mountains stay as they are. Side effect: biomes no longer match the land exactly (mountain
-  biomes can reach flat ground). Weirdness is not stretched so river biomes stay on carved rivers. Stretching erosion for
-  the terrain too was rejected: it reshapes mountain ranges. In hot bands mountains show as badlands (vanilla's hot peaks).
+- Biome Size works like Large Biomes: it stretches the continentalness and erosion noises everywhere they're sampled
+  (terrain and biome choice alike), plus local humidity/temperature. Stretching only the biome-picking erosion (0.3.0)
+  looked like it did nothing in testing and made biomes stop matching the land, so it was reverted in 0.3.1. Big values
+  (Realistic's 2500%) also stretch mountain ranges, including a terrain mod's if it samples vanilla's noises. The Coast
+  Size Override multiplies the continentalness stretch. In hot bands mountains show as badlands (vanilla's hot peaks).

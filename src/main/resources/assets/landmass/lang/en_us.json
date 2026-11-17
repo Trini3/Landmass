@@ -5,7 +5,7 @@
   "landmass.customize.humidity.hint": "Size of humidity zones in blocks: regions that are wet or dry overall. Vanilla Minecraft's are about %s blocks. Inside them, individual biomes keep the size set by Biome size, so a dry zone can still have some forest.",
   "landmass.customize.blocks": "%s blocks",
   "landmass.customize.biome_size": "Biome size",
-  "landmass.customize.biome_size.hint": "Size of individual biomes compared with vanilla Minecraft: forest, plains, desert, badlands, windswept hills and the rest. Only where biomes go changes; the terrain itself (hills, mountains, rivers) keeps its own size, so a biome can run onto land shaped for another.",
+  "landmass.customize.biome_size.hint": "Size of biomes compared with vanilla Minecraft, like the Large Biomes world type (400%). Terrain features such as hills, mountain ranges and coasts grow with them, so biomes keep matching the land.",
   "landmass.customize.percent": "%s%%",
   "landmass.customize.preview": "Preview map",
   "landmass.preview.title": "Preview",
