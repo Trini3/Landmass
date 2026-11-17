@@ -1,0 +1,4 @@
+accessWidener v2 official
+
+# The Landmass world type's generator is a noise generator with extra settings.
+extendable class net/minecraft/world/level/levelgen/NoiseBasedChunkGenerator

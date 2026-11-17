@@ -1,0 +1,130 @@
+name: Build
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      compat:
+        description: Also run the self-test alongside other worldgen mods (Biomes O' Plenty, Regions Unexplored, Lithosphere, Terralith, Tectonic)
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build and self-test
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Build
+        run: ./gradlew build --stacktrace
+
+      - name: Upload mod jar
+        uses: actions/upload-artifact@v4
+        with:
+          name: landmass-jar
+          path: build/libs/*.jar
+
+      - name: Prepare test server
+        run: |
+          mkdir -p run-selftest
+          # The self-test starts a real dedicated server, which only runs once the Minecraft EULA is accepted.
+          echo "eula=true" > run-selftest/eula.txt
+          printf "level-seed=20261022\nlevel-type=landmass\\:landmass\nspawn-protection=0\nonline-mode=false\nmax-tick-time=-1\n" > run-selftest/server.properties
+
+      - name: Self-test with vanilla worldgen
+        timeout-minutes: 20
+        run: ./gradlew runSelfTest --stacktrace
+
+      - name: Check self-test result
+        run: grep -q "LANDMASS SELF-TEST PASSED" run-selftest/logs/latest.log
+
+      - name: Upload self-test maps and log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: selftest-vanilla
+          if-no-files-found: ignore
+          path: |
+            run-selftest/world/landmass-maps/
+            run-selftest/world/serverconfig/landmass-climate.json
+            run-selftest/logs/latest.log
+
+  compat:
+    name: Self-test with ${{ matrix.name }}
+    needs: build
+    if: github.event_name == 'workflow_dispatch' && inputs.compat
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Biomes O' Plenty
+            id: biomes-o-plenty
+            mods: biomes-o-plenty
+          - name: Regions Unexplored
+            id: regions-unexplored
+            mods: regions-unexplored
+          - name: Lithosphere
+            id: lithosphere
+            mods: lithosphere
+          - name: Terralith and Tectonic
+            id: terralith-tectonic
+            mods: terralith tectonic
+          - name: Biomes O' Plenty, Regions Unexplored and Lithosphere
+            id: combined
+            mods: biomes-o-plenty regions-unexplored lithosphere
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Download mods from Modrinth
+        run: python3 .github/scripts/fetch_mods.py run-selftest ${{ matrix.mods }}
+
+      - name: Prepare test server
+        run: |
+          mkdir -p run-selftest
+          # The self-test starts a real dedicated server, which only runs once the Minecraft EULA is accepted.
+          echo "eula=true" > run-selftest/eula.txt
+          printf "level-seed=20261022\nlevel-type=landmass\\:landmass\nspawn-protection=0\nonline-mode=false\nmax-tick-time=-1\n" > run-selftest/server.properties
+
+      - name: Self-test
+        timeout-minutes: 25
+        run: ./gradlew runSelfTest --stacktrace
+
+      - name: Check self-test result
+        run: grep -q "LANDMASS SELF-TEST PASSED" run-selftest/logs/latest.log
+
+      - name: Upload self-test maps and log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: selftest-${{ matrix.id }}
+          if-no-files-found: ignore
+          path: |
+            run-selftest/world/landmass-maps/
+            run-selftest/world/serverconfig/landmass-climate.json
+            run-selftest/logs/latest.log
