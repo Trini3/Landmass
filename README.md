@@ -13,7 +13,8 @@ Needs Fabric Loader 0.20.1+, Fabric API and Java 25.
 On the Create World screen's **World** tab, switch **Custom Climate** on (it is off by default), then press
 **Climate Settings...** to change:
 
-- **Zones:** the width of the hot, warm, temperate, cold and frozen zones, humidity zone size and band waviness. The grey line under the rows shows where the frozen zone starts and where the pole is.
+- **Zones:** the width of the hot, warm, temperate, cold and frozen zones, humidity zone size, biome size and band
+  waviness. Biome size has its own switch: OFF (the default) keeps the world type's own biome size. The grey line under the rows shows where the frozen zone starts and where the pole is.
 - **Deviation:** patches where the climate jumps warmer, colder, drier or wetter, and how much of the hot zone is desert.
 
 The settings are saved in the world folder at `serverconfig/acclimatization.json`. Edit that file and restart the world to
@@ -31,8 +32,8 @@ gives the defaults. Deleting the file turns Custom Climate off for that world.
 ## Known issues
 
 - Client screens are untested in game; CI only builds the mod and starts a dedicated server with the climate on.
-- No Biome size setting: without stretching terrain (which would break terrain mods) it only resized climate patches,
-  which the author found not worth a slider. Use a Large Biomes world type for bigger biomes.
+- Biome size only resizes the humidity and temperature patches that pick biomes, never terrain (stretching terrain like
+  Large Biomes would break terrain mods). Removed in 0.1.1, back in 0.1.2 behind an on/off switch, off by default.
 - 0.1.0 previews showed no bands: the preview opens its own screen, and the mod only looked for the climate settings
   while the Create World screen itself was showing. Since 0.1.1 it remembers the latest Create World screen.
 - The Create World screen hands the settings to the new world by its folder name, at the moment Create is pressed.

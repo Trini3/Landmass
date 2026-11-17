@@ -42,6 +42,10 @@ public class ClimateScreen extends Screen {
     private static final int MIN_HUMIDITY_ZONE = (int) Math.round(ClimateSettings.VANILLA_HUMIDITY_ZONE * ClimateSettings.MIN_HUMIDITY_SCALE);
     private static final int MAX_HUMIDITY_ZONE = 1_000_000;
     private static final int LIMIT_HUMIDITY_ZONE = (int) Math.round(ClimateSettings.VANILLA_HUMIDITY_ZONE * ClimateSettings.MAX_HUMIDITY_SCALE);
+    private static final int MIN_SIZE_PERCENT = 25;
+    private static final int MAX_SIZE_PERCENT = 2_500;
+    private static final int LIMIT_MIN_SIZE_PERCENT = (int) Math.round(100 * ClimateSettings.MIN_SIZE_SCALE);
+    private static final int LIMIT_MAX_SIZE_PERCENT = (int) Math.round(100 * ClimateSettings.MAX_SIZE_SCALE);
     private static final int GOLD = 0xFFAA00;
     private static final int TITLE_TOP = 8;
     private static final int PAGE_TOP = 22;
@@ -58,6 +62,9 @@ public class ClimateScreen extends Screen {
     private final int[] zoneWidths;
     private boolean zonesChanged;
     private double humidityScale;
+    // Biome Size: off keeps the world type's own biome size; the slider only counts while it's on.
+    private boolean biomeOverride;
+    private double biomeScale;
     private double waviness;
     private double desertShare;
     private ClimateDeviation deviation;
@@ -66,6 +73,7 @@ public class ClimateScreen extends Screen {
     private final List<BlockSetting> zoneSettings;
     private final List<BlockSetting> deviationSettings;
     private final BlockSetting humidityRow;
+    private final BlockSetting biomeRow;
     private int firstRow;
     private int rowHeight;
 
@@ -76,11 +84,13 @@ public class ClimateScreen extends Screen {
         this.initial = state.settings();
         this.zoneWidths = this.initial.latitude().zoneWidths();
         this.humidityScale = this.initial.humidityScale();
+        this.biomeOverride = this.initial.biomeScale().isPresent();
+        this.biomeScale = this.initial.biomeScale().orElse(1.0);
         this.waviness = this.initial.latitude().waviness();
         this.desertShare = this.initial.latitude().desertShare();
         this.deviation = this.initial.deviation();
 
-        BlockSetting[] rows = new BlockSetting[ZONES.length + 2];
+        BlockSetting[] rows = new BlockSetting[ZONES.length + 3];
         for (int i = 0; i < ZONES.length; i++) {
             int zone = i;
             rows[i] = new BlockSetting(KEY + "zone." + ZONES[i], "blocks", MIN_ZONE_WIDTH, MAX_ZONE_WIDTH, MIN_ZONE_WIDTH,
@@ -94,7 +104,10 @@ public class ClimateScreen extends Screen {
                 LIMIT_HUMIDITY_ZONE, (int) Math.round(this.humidityScale * ClimateSettings.VANILLA_HUMIDITY_ZONE),
                 blocks -> this.humidityScale = blocks / (double) ClimateSettings.VANILLA_HUMIDITY_ZONE);
         rows[ZONES.length] = this.humidityRow;
-        rows[ZONES.length + 1] = linear(new BlockSetting(KEY + "waviness", "percent", 0, (int) Math.round(100 * LatitudeLayout.MAX_WAVINESS), 0,
+        this.biomeRow = new BlockSetting(KEY + "biome_size", "percent", MIN_SIZE_PERCENT, MAX_SIZE_PERCENT, LIMIT_MIN_SIZE_PERCENT,
+                LIMIT_MAX_SIZE_PERCENT, (int) Math.round(this.biomeScale * 100), percent -> this.biomeScale = percent / 100.0);
+        rows[ZONES.length + 1] = this.biomeRow;
+        rows[ZONES.length + 2] = linear(new BlockSetting(KEY + "waviness", "percent", 0, (int) Math.round(100 * LatitudeLayout.MAX_WAVINESS), 0,
                 (int) Math.round(100 * LatitudeLayout.LIMIT_MAX_WAVINESS), (int) Math.round(this.waviness * 100), percent -> this.waviness = percent / 100.0));
         this.zoneSettings = List.of(rows);
 
@@ -157,6 +170,18 @@ public class ClimateScreen extends Screen {
             AbstractWidget box = this.addRenderableWidget(setting.createBox(this.font, left + 244, top, 66));
             slider.setTooltip(tooltip);
             box.setTooltip(tooltip);
+            if (setting == this.biomeRow) {
+                // The switch takes the label's place; the slider and box only count while it's on.
+                slider.active = this.biomeOverride;
+                box.active = this.biomeOverride;
+                Button toggle = Button.builder(Component.translatable(KEY + "biome_size.toggle",
+                        this.biomeOverride ? CommonComponents.OPTION_ON : CommonComponents.OPTION_OFF), button -> {
+                    this.biomeOverride = !this.biomeOverride;
+                    this.rebuildWidgets();
+                }).bounds(left, top, 96, 20).build();
+                toggle.setTooltip(tooltip);
+                this.addRenderableWidget(toggle);
+            }
         }
 
         int bottom = this.height - 28;
@@ -173,6 +198,9 @@ public class ClimateScreen extends Screen {
         graphics.text(this.font, this.title, this.width / 2 - this.font.width(this.title) / 2, TITLE_TOP, WHITE);
         List<BlockSetting> rows = this.pageSettings();
         for (int i = 0; i < rows.size(); i++) {
+            if (rows.get(i) == this.biomeRow) {
+                continue;
+            }
             graphics.text(this.font, Component.translatable(rows.get(i).key), left, this.rowTop(i) + 6, WHITE);
         }
 
@@ -181,10 +209,12 @@ public class ClimateScreen extends Screen {
             // No room for the line on the shortest windows.
             return;
         }
-        Optional<BlockSetting> invalid = rows.stream().filter(setting -> !setting.valid).findFirst();
-        Optional<BlockSetting> beyond = rows.stream().filter(BlockSetting::beyondRecommended).findFirst();
-        boolean beyondElsewhere = beyond.isEmpty()
-                && Stream.of(this.zoneSettings, this.deviationSettings).flatMap(List::stream).anyMatch(BlockSetting::beyondRecommended);
+        // Biome Size's numbers don't count while its switch is off.
+        List<BlockSetting> counted = rows.stream().filter(setting -> setting != this.biomeRow || this.biomeOverride).toList();
+        Optional<BlockSetting> invalid = counted.stream().filter(setting -> !setting.valid).findFirst();
+        Optional<BlockSetting> beyond = counted.stream().filter(BlockSetting::beyondRecommended).findFirst();
+        boolean beyondElsewhere = beyond.isEmpty() && Stream.of(this.zoneSettings, this.deviationSettings).flatMap(List::stream)
+                .filter(setting -> setting != this.biomeRow || this.biomeOverride).anyMatch(BlockSetting::beyondRecommended);
         Component line;
         int color = GREY;
         if (invalid.isPresent()) {
@@ -223,7 +253,8 @@ public class ClimateScreen extends Screen {
         if (this.desertShare != this.initial.latitude().desertShare()) {
             latitude = latitude.withDesertShare(this.desertShare);
         }
-        return this.initial.withLatitude(latitude).withHumidityScale(this.humidityScale).withDeviation(this.deviation);
+        return this.initial.withLatitude(latitude).withHumidityScale(this.humidityScale)
+                .withBiomeScale(this.biomeOverride ? Optional.of(this.biomeScale) : Optional.empty()).withDeviation(this.deviation);
     }
 
     private void applyAndClose() {

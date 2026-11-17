@@ -1,6 +1,6 @@
 {
   "acclimatization.climate.humidity": "Humidity zones",
-  "acclimatization.climate.humidity.hint": "Size of humidity zones in blocks: regions that are wet or dry overall. Vanilla Minecraft's are about %s blocks. Individual biomes keep their usual size inside them, so a dry zone can still have some forest.",
+  "acclimatization.climate.humidity.hint": "Size of humidity zones in blocks: regions that are wet or dry overall. Vanilla Minecraft's are about %s blocks. Inside them, individual biomes keep the size set by Biome size, so a dry zone can still have some forest.",
   "acclimatization.climate.blocks": "%s blocks",
   "acclimatization.climate.percent": "%s%%",
   "acclimatization.climate.zone.hot": "Hot zone",
@@ -37,13 +37,16 @@
   "acclimatization.climate.desert_share.hint": "Roughly how much of the hot zone is desert; the rest is savanna, forest and jungle. Default 45%. 50% gives deserts and wet land in equal measure. How big each desert is follows the humidity zone size on the Zones page.",
   "acclimatization.climate.deviation.summary": "Patches where the climate jumps zones, like a snowy forest beside a desert.",
   "acclimatization.climate.page.zones": "Zones",
-  "acclimatization.climate.page.zones.hint": "Temperature zone widths, humidity zone size and band waviness.",
+  "acclimatization.climate.page.zones.hint": "Temperature zone widths, humidity zone size, biome size and band waviness.",
   "acclimatization.climate.page.deviation": "Deviation",
   "acclimatization.climate.page.deviation.hint": "Climate deviation patches, where the climate jumps warmer, colder, drier or wetter, and how much of the hot zone is desert.",
   "acclimatization.climate.title": "Climate",
   "acclimatization.world.toggle": "Custom Climate: %s",
   "acclimatization.world.toggle.hint": "Climate zones follow latitude: hot at the equator (z = 0), colder going north and south, up to frozen poles. Works with any world type and only changes the overworld.",
   "acclimatization.world.settings": "Climate Settings...",
-  "acclimatization.world.settings.hint": "Zone widths, humidity zone size, band waviness and climate deviation.",
-  "acclimatization.world.own_climate": "This world type has its own climate settings (Landmass or Trini's Terrain), so Custom Climate is not used for it."
+  "acclimatization.world.settings.hint": "Zone widths, humidity zone size, biome size, band waviness and climate deviation.",
+  "acclimatization.world.own_climate": "This world type has its own climate settings (Landmass or Trini's Terrain), so Custom Climate is not used for it.",
+  "acclimatization.climate.biome_size": "Biome size",
+  "acclimatization.climate.biome_size.toggle": "Biome size: %s",
+  "acclimatization.climate.biome_size.hint": "Size of individual biomes compared with the world type's own: how big the humidity and temperature patches are inside each zone. OFF keeps the world type's biome size (for example Large Biomes stays large). Terrain (hills, mountains, coasts) is never changed."
 }
