@@ -134,7 +134,8 @@ public final class ClimateHooks {
             return settings;
         }
         Landmass.LOGGER.info("Applying latitude climate bands to {}", level.dimension().identifier());
-        NoiseGeneratorSettings banded = withClimate(settings, wander.get(), world, seed, biomes);
+        NoiseGeneratorSettings banded = withClimate(settings, wander.get(), world, seed, biomes,
+                world.lithosphereCompat() ? lithosphereContinents(level.registryAccess().lookupOrThrow(Registries.DENSITY_FUNCTION)) : null);
         if (world.continents().enabled() && looksLikeOverworld(settings) && !ContinentsFunction.isUsedBy(banded.noiseRouter().continents())) {
             Landmass.LOGGER.warn("{}'s terrain doesn't use Minecraft's continentalness noise (a terrain mod may have its own), "
                     + "so the continent settings can't change its land and oceans", level.dimension().identifier());
@@ -202,6 +203,15 @@ public final class ClimateHooks {
         }
     }
 
+    /** Lithosphere's continentalness density function, if Lithosphere is installed. */
+    @Nullable
+    public static DensityFunction lithosphereContinents(HolderGetter<DensityFunction> functions) {
+        return functions.get(LITHOSPHERE_CONTINENTS).map(Holder::value).orElse(null);
+    }
+
+    private static final net.minecraft.resources.ResourceKey<DensityFunction> LITHOSPHERE_CONTINENTS = net.minecraft.resources.ResourceKey.create(
+            Registries.DENSITY_FUNCTION, net.minecraft.resources.Identifier.fromNamespaceAndPath("lithosphere", "continents"));
+
     /** Humidity for these settings, with sizes multiplied by {@code scale} (islands can have their own). */
     private static DensityFunction humidity(DensityFunction vegetation, WorldClimateSettings world, double scale) {
         return HumidityBlend.of(vegetation, world.humidityScale() * scale, world.biomeScale() * scale);
@@ -236,12 +246,23 @@ public final class ClimateHooks {
      */
     public static NoiseGeneratorSettings withClimate(NoiseGeneratorSettings settings, Holder<NormalNoise> wanderNoise, WorldClimateSettings world,
                                                      long seed, @Nullable HolderGetter<Biome> biomes) {
+        return withClimate(settings, wanderNoise, world, seed, biomes, null);
+    }
+
+    /**
+     * As above. With Lithosphere Compatibility on, {@code lithosphereContinents} is Lithosphere's lithosphere:continents density
+     * function: Lithosphere builds its land and oceans from that rather than from Minecraft's continentalness noise, so the
+     * continents replace it wherever it's used (its terrain references it, and so does the router).
+     */
+    public static NoiseGeneratorSettings withClimate(NoiseGeneratorSettings settings, Holder<NormalNoise> wanderNoise, WorldClimateSettings world,
+                                                     long seed, @Nullable HolderGetter<Biome> biomes, @Nullable DensityFunction lithosphereContinents) {
         NoiseRouter original = settings.noiseRouter();
         // Landmass leaves the landscape to vanilla or the installed terrain mod wherever it can: no island-scale erosion and no
         // world height. Continents only move land and sea; shores are shaped only with coastline features on. Biome Size
         // (like Large Biomes) and the Coast Size Override stretch vanilla's noises, so they resize terrain features too.
         boolean coastline = world.coastline();
-        Continents continents = world.continents().enabled() ? new Continents(world.effectiveContinents(), seed, world.coastScale() * world.terrainBiomeScale(), false, world.lithosphereCompat()) : null;
+        Continents continents = world.continents().enabled() ? new Continents(world.effectiveContinents(), seed, world.coastScale() * world.terrainBiomeScale(), false, world.lithosphereCompat(),
+                world.lithosphereCompat() ? lithosphereContinents : null) : null;
         // Individual biomes: local humidity patches and local temperature changes. Humidity zones are the bigger regions around them.
         double biomeSize = world.biomeScale();
         DensityFunction humidity = humidity(original.vegetation(), world, 1.0);
@@ -271,6 +292,9 @@ public final class ClimateHooks {
         // Continents first, so resizing biomes afterwards also stretches the noise they keep for inland variety.
         if (continents != null) {
             router = continents.apply(router);
+            if (lithosphereContinents != null && !ContinentsFunction.isUsedBy(router.finalDensity())) {
+                Landmass.LOGGER.warn("Lithosphere Compatibility couldn't find lithosphere:continents in the terrain, so Lithosphere keeps its own land and oceans");
+            }
             if (coastline) {
                 router = continents.shapeShores(router);
             }

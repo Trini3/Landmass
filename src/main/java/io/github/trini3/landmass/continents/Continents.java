@@ -40,6 +40,9 @@ public final class Continents implements DfRewriteRule {
     private final DensityFunction islandness;
     private final boolean landscape;
     private final List<ResourceKey<NormalNoise>> continentalness;
+    // A density function (Lithosphere's lithosphere:continents) to replace wherever it's used, or null.
+    @org.jetbrains.annotations.Nullable
+    private final DensityFunction replaced;
 
     /**
      * A world's continents.
@@ -57,7 +60,18 @@ public final class Continents implements DfRewriteRule {
 
     /** @param lithosphere also replace Lithosphere's own continentalness noise, so its terrain follows these continents */
     public Continents(ContinentLayout layout, long seed, double bandScale, boolean landscape, boolean lithosphere) {
-        this.continentalness = lithosphere ? BiomeScale.continentalnessNoises(true) : CONTINENTALNESS;
+        this(layout, seed, bandScale, landscape, lithosphere, null);
+    }
+
+    /**
+     * @param replaced a terrain mod's own continentalness density function (Lithosphere's {@code lithosphere:continents}): it
+     *                 gets these continents wherever the router uses it, the way Minecraft's continentalness noise does
+     */
+    public Continents(ContinentLayout layout, long seed, double bandScale, boolean landscape, boolean lithosphere,
+                      @org.jetbrains.annotations.Nullable DensityFunction replaced) {
+        this.replaced = replaced;
+        // With the mod's own function found, its insides are left alone so it can still be recognised.
+        this.continentalness = lithosphere && replaced == null ? BiomeScale.continentalnessNoises(true) : CONTINENTALNESS;
         this.landscape = landscape;
         this.layout = layout;
         this.seed = seed;
@@ -109,6 +123,9 @@ public final class Continents implements DfRewriteRule {
 
     @Override
     public DensityFunction rewrite(DensityFunction function) {
+        if (this.replaced != null && (function == this.replaced || function.equals(this.replaced))) {
+            return new ContinentsFunction(function, this.layout, this.seed, this.bandScale, this.shapes);
+        }
         if (BiomeScale.samplesNoise(function, this.continentalness)) {
             return new ContinentsFunction(function, this.layout, this.seed, this.bandScale, this.shapes);
         }

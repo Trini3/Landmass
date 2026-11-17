@@ -95,3 +95,7 @@ that checks the climate bands and prints `LANDMASS SELF-TEST PASSED`.
   Lithosphere's page (point noise_settings at its final_density) is for datapacks that replace noise_settings and doesn't
   apply: Landmass edits the router that's already loaded. Lithosphere's erosion noises aren't mapped (names unknown;
   worked out from a log because Modrinth is blocked in the cloud), so Biome Size doesn't widen its mountains.
+  0.4.1 only mapped the `lithosphere:continentalness` noise, which Lithosphere barely uses (its lake placement), so land
+  still followed Lithosphere. 0.4.2 replaces the `lithosphere:continents` density function itself (looked up in the
+  density function registry, matched by equality while rewriting the router) with ContinentsFunction. If it isn't found
+  in the final density, the log says "Lithosphere Compatibility couldn't find lithosphere:continents".
