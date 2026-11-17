@@ -99,3 +99,7 @@ that checks the climate bands and prints `LANDMASS SELF-TEST PASSED`.
   still followed Lithosphere. 0.4.2 replaces the `lithosphere:continents` density function itself (looked up in the
   density function registry, matched by equality while rewriting the router) with ContinentsFunction. If it isn't found
   in the final density, the log says "Lithosphere Compatibility couldn't find lithosphere:continents".
+  0.4.2 hung at "Selecting global world spawn": each of Lithosphere's dozens of uses of lithosphere:continents got its own
+  uncached ContinentsFunction, evaluated at every height, and the router rewrite copied shared subtrees per use (breaking
+  Lithosphere's caches and growing exponentially). 0.4.3 memoizes Densities.rewriteAll/contains by identity (one walk per
+  router) and replaces lithosphere:continents with one shared DensityFunctions.cache(ContinentsFunction).

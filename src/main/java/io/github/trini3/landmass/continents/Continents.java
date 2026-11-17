@@ -43,6 +43,9 @@ public final class Continents implements DfRewriteRule {
     // A density function (Lithosphere's lithosphere:continents) to replace wherever it's used, or null.
     @org.jetbrains.annotations.Nullable
     private final DensityFunction replaced;
+    // What replaces it: one shared, column-cached function, so every place that uses it reads the same cached value.
+    @org.jetbrains.annotations.Nullable
+    private DensityFunction replacement;
 
     /**
      * A world's continents.
@@ -124,7 +127,12 @@ public final class Continents implements DfRewriteRule {
     @Override
     public DensityFunction rewrite(DensityFunction function) {
         if (this.replaced != null && (function == this.replaced || function.equals(this.replaced))) {
-            return new ContinentsFunction(function, this.layout, this.seed, this.bandScale, this.shapes);
+            // Lithosphere samples its continents from dozens of places, at every height, so without one shared cache the
+            // continents (much slower than a noise) were worked out again and again and world creation seemed to hang.
+            if (this.replacement == null) {
+                this.replacement = DensityFunctions.cache(new ContinentsFunction(function, this.layout, this.seed, this.bandScale, this.shapes));
+            }
+            return this.replacement;
         }
         if (BiomeScale.samplesNoise(function, this.continentalness)) {
             return new ContinentsFunction(function, this.layout, this.seed, this.bandScale, this.shapes);
