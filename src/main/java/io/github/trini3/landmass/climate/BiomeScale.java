@@ -28,22 +28,12 @@ public final class BiomeScale implements DfRewriteRule {
     private static final List<ResourceKey<NormalNoise>> NOISES = List.of(
             ResourceKey.create(Registries.NOISE, Identifier.fromNamespaceAndPath("minecraft", "continentalness")),
             ResourceKey.create(Registries.NOISE, Identifier.fromNamespaceAndPath("minecraft", "erosion")));
-    /** Lithosphere's own continentalness noise, which its terrain samples instead of Minecraft's. */
-    public static final ResourceKey<NormalNoise> LITHOSPHERE_CONTINENTALNESS =
-            ResourceKey.create(Registries.NOISE, Identifier.fromNamespaceAndPath("lithosphere", "continentalness"));
     private final double continentalnessScale;
     private final double erosionScale;
-    private final List<ResourceKey<NormalNoise>> continentalness;
 
-    private BiomeScale(double continentalnessScale, double erosionScale, boolean lithosphere) {
+    private BiomeScale(double continentalnessScale, double erosionScale) {
         this.continentalnessScale = continentalnessScale;
         this.erosionScale = erosionScale;
-        this.continentalness = continentalnessNoises(lithosphere);
-    }
-
-    /** The continentalness noises to treat as Minecraft's: with Lithosphere compatibility, Lithosphere's too. */
-    public static List<ResourceKey<NormalNoise>> continentalnessNoises(boolean lithosphere) {
-        return lithosphere ? List.of(NOISES.get(0), LITHOSPHERE_CONTINENTALNESS) : NOISES.subList(0, 1);
     }
 
     /** The router with its continentalness and erosion noises stretched sideways by {@code scale}. */
@@ -56,19 +46,13 @@ public final class BiomeScale implements DfRewriteRule {
      * and its erosion noise (mountain ranges, hills and flat areas) by {@code erosionScale}.
      */
     public static NoiseRouter apply(NoiseRouter router, double continentalnessScale, double erosionScale) {
-        return apply(router, continentalnessScale, erosionScale, false);
-    }
-
-    /** As above; with {@code lithosphere}, Lithosphere's continentalness noise is stretched like Minecraft's. */
-    public static NoiseRouter apply(NoiseRouter router, double continentalnessScale, double erosionScale, boolean lithosphere) {
-        return continentalnessScale == 1.0 && erosionScale == 1.0 ? router
-                : Densities.rewriteAll(router, new BiomeScale(continentalnessScale, erosionScale, lithosphere));
+        return continentalnessScale == 1.0 && erosionScale == 1.0 ? router : Densities.rewriteAll(router, new BiomeScale(continentalnessScale, erosionScale));
     }
 
     @Override
     public DensityFunction rewrite(DensityFunction function) {
         // Called for every function in the router, innermost first, so each noise is wrapped once, right where it's sampled.
-        if (this.continentalnessScale != 1.0 && samplesNoise(function, this.continentalness)) {
+        if (this.continentalnessScale != 1.0 && samplesNoise(function, NOISES.subList(0, 1))) {
             return new ScaleXZ(function, this.continentalnessScale);
         }
         if (this.erosionScale != 1.0 && samplesNoise(function, NOISES.subList(1, 2))) {

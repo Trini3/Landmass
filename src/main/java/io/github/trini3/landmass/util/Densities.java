@@ -37,7 +37,7 @@ public final class Densities {
     /** Whether the function, or any function inside it (references included), matches. */
     public static boolean contains(DensityFunction function, Predicate<DensityFunction> test) {
         boolean[] found = {false};
-        // Terrain packs such as Lithosphere reuse the same functions many times over, so each one is only looked at once.
+        // Terrain packs can reuse the same functions many times over, so each one is only looked at once.
         Map<DensityFunction, Boolean> seen = new IdentityHashMap<>();
         DfRewriteRule[] rule = new DfRewriteRule[1];
         rule[0] = inner -> {
@@ -79,7 +79,7 @@ public final class Densities {
 
     /**
      * A rule that applies {@code rule} bottom up through a whole tree. Each function is rewritten once and its result reused
-     * wherever it appears again: terrain packs such as Lithosphere use the same functions dozens of times, and rewriting every
+     * wherever it appears again: terrain packs can use the same functions dozens of times, and rewriting every
      * use separately both takes exponentially long and breaks the sharing their caches rely on (each copy would compute again).
      */
     private static DfRewriteRule walker(DfRewriteRule rule) {

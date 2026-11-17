@@ -265,8 +265,6 @@
   "landmass.customize.landmass_generation.hint": "On: Landmass places continents, islands and oceans with the sizes on these pages. Off: the land and oceans of vanilla Minecraft, or of the installed terrain mod or datapack, are kept. Climate settings apply either way.",
   "landmass.customize.biome_terrain": "Biome Size Scales Terrain",
   "landmass.customize.biome_terrain.hint": "On: Biome Size works like Large Biomes and stretches the terrain noises (hills, mountain ranges, coasts) along with the biomes. Off: for mods or datapacks that shape the terrain themselves; Biome Size only resizes humidity and temperature patches.",
-  "landmass.customize.lithosphere": "Lithosphere Compatibility",
-  "landmass.customize.lithosphere.hint": "Turn on when Lithosphere is installed. Lithosphere shapes the land from its own continentalness noise, so without this its land and oceans ignore Custom Landmass Generation and Biome Size. On: that noise gets Landmass's continents and Biome Size's stretch too.",
   "landmass.customize.coast_override": "Coast Size Override",
   "landmass.customize.coast_override.hint": "On: coasts, beaches and the bands from coast to inland get the size below. Off: coast size is left to vanilla Minecraft or the installed terrain mod or datapack.",
   "landmass.customize.coastline": "Coastline features",

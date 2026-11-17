@@ -191,8 +191,7 @@ public class TerrainPreviewScreen extends Screen {
             NoiseGeneratorSettings settings = generator.generatorSettings().value();
             Optional<Holder.Reference<NormalNoise>> wander = noises.get(ModNoises.BORDER_WANDER);
             if (wander.isPresent() && this.climate.appliesTo(Level.OVERWORLD)) {
-                settings = ClimateHooks.withClimate(settings, wander.get(), this.climate, seed, null, this.climate.lithosphereCompat()
-                        ? ClimateHooks.lithosphereContinents(this.context.worldgenLoadContext().lookupOrThrow(Registries.DENSITY_FUNCTION)) : null);
+                settings = ClimateHooks.withClimate(settings, wander.get(), this.climate, seed, null);
             }
             state = RandomState.create(noises, seed, settings);
             this.randomState = state;

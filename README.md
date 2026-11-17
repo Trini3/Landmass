@@ -89,17 +89,7 @@ that checks the climate bands and prints `LANDMASS SELF-TEST PASSED`.
   default's (no single land scale gives 16k-72k continents with 10k islands and 3k small islands); its land scale 2.8
   still sizes coastal features. 0.4.0 also raised biome size, humidity zones and waviness for L to 3XL (old values in
   WorldPresets).
-- Lithosphere Compatibility (0.4.1, `lithosphere_compatibility`, default off): Lithosphere builds its terrain from its own
-  `lithosphere:continentalness` noise, so Custom Landmass Generation and Biome Size's stretch (which match
-  `minecraft:continentalness`) never reached it. With the switch on, that noise is treated as Minecraft's. The fix on
-  Lithosphere's page (point noise_settings at its final_density) is for datapacks that replace noise_settings and doesn't
-  apply: Landmass edits the router that's already loaded. Lithosphere's erosion noises aren't mapped (names unknown;
-  worked out from a log because Modrinth is blocked in the cloud), so Biome Size doesn't widen its mountains.
-  0.4.1 only mapped the `lithosphere:continentalness` noise, which Lithosphere barely uses (its lake placement), so land
-  still followed Lithosphere. 0.4.2 replaces the `lithosphere:continents` density function itself (looked up in the
-  density function registry, matched by equality while rewriting the router) with ContinentsFunction. If it isn't found
-  in the final density, the log says "Lithosphere Compatibility couldn't find lithosphere:continents".
-  0.4.2 hung at "Selecting global world spawn": each of Lithosphere's dozens of uses of lithosphere:continents got its own
-  uncached ContinentsFunction, evaluated at every height, and the router rewrite copied shared subtrees per use (breaking
-  Lithosphere's caches and growing exponentially). 0.4.3 memoizes Densities.rewriteAll/contains by identity (one walk per
-  router) and replaces lithosphere:continents with one shared DensityFunctions.cache(ContinentsFunction).
+- Lithosphere support is on hold: the Lithosphere Compatibility switch (0.4.1-0.4.3) was taken out in 0.4.4 and kept on
+  the `archive/lithosphere-compat` branch to pick up later. Landmass makes no Lithosphere-specific changes now; with
+  Lithosphere installed, its own land and oceans win over Custom Landmass Generation. 0.4.4 keeps the general speedup from
+  0.4.3: Densities.rewriteAll/contains rewrite each density function once and keep shared functions shared.

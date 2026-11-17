@@ -39,13 +39,6 @@ public final class Continents implements DfRewriteRule {
     // Cached per column inside chunks, since the climate functions that blend by it are sampled at every height.
     private final DensityFunction islandness;
     private final boolean landscape;
-    private final List<ResourceKey<NormalNoise>> continentalness;
-    // A density function (Lithosphere's lithosphere:continents) to replace wherever it's used, or null.
-    @org.jetbrains.annotations.Nullable
-    private final DensityFunction replaced;
-    // What replaces it: one shared, column-cached function, so every place that uses it reads the same cached value.
-    @org.jetbrains.annotations.Nullable
-    private DensityFunction replacement;
 
     /**
      * A world's continents.
@@ -58,23 +51,6 @@ public final class Continents implements DfRewriteRule {
 
     /** @param landscape false in compatibility mode: erosion (terrain shape) keeps one size everywhere instead of island scale out at sea */
     public Continents(ContinentLayout layout, long seed, double bandScale, boolean landscape) {
-        this(layout, seed, bandScale, landscape, false);
-    }
-
-    /** @param lithosphere also replace Lithosphere's own continentalness noise, so its terrain follows these continents */
-    public Continents(ContinentLayout layout, long seed, double bandScale, boolean landscape, boolean lithosphere) {
-        this(layout, seed, bandScale, landscape, lithosphere, null);
-    }
-
-    /**
-     * @param replaced a terrain mod's own continentalness density function (Lithosphere's {@code lithosphere:continents}): it
-     *                 gets these continents wherever the router uses it, the way Minecraft's continentalness noise does
-     */
-    public Continents(ContinentLayout layout, long seed, double bandScale, boolean landscape, boolean lithosphere,
-                      @org.jetbrains.annotations.Nullable DensityFunction replaced) {
-        this.replaced = replaced;
-        // With the mod's own function found, its insides are left alone so it can still be recognised.
-        this.continentalness = lithosphere && replaced == null ? BiomeScale.continentalnessNoises(true) : CONTINENTALNESS;
         this.landscape = landscape;
         this.layout = layout;
         this.seed = seed;
@@ -126,15 +102,7 @@ public final class Continents implements DfRewriteRule {
 
     @Override
     public DensityFunction rewrite(DensityFunction function) {
-        if (this.replaced != null && (function == this.replaced || function.equals(this.replaced))) {
-            // Lithosphere samples its continents from dozens of places, at every height, so without one shared cache the
-            // continents (much slower than a noise) were worked out again and again and world creation seemed to hang.
-            if (this.replacement == null) {
-                this.replacement = DensityFunctions.cache(new ContinentsFunction(function, this.layout, this.seed, this.bandScale, this.shapes));
-            }
-            return this.replacement;
-        }
-        if (BiomeScale.samplesNoise(function, this.continentalness)) {
+        if (BiomeScale.samplesNoise(function, CONTINENTALNESS)) {
             return new ContinentsFunction(function, this.layout, this.seed, this.bandScale, this.shapes);
         }
         if (this.landscape && this.splitsIslandBiomes() && BiomeScale.samplesNoise(function, EROSION)) {
