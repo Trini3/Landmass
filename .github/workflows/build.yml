@@ -1,0 +1,71 @@
+name: Build
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build and server test
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Build
+        run: ./gradlew build --stacktrace
+
+      - name: Upload mod jar
+        uses: actions/upload-artifact@v4
+        with:
+          name: evenlargerbiomes-jar
+          path: build/libs/*.jar
+
+      # Starts a dedicated server on the XXL Biomes world type. If any of the mod's
+      # world preset files were broken, the server would fail to load them.
+      - name: Server test
+        timeout-minutes: 15
+        run: |
+          mkdir -p run
+          # The server only runs once the Minecraft EULA is accepted.
+          echo "eula=true" > run/eula.txt
+          printf "level-seed=20261117\nlevel-type=evenlargerbiomes\\:xxl_biomes\nonline-mode=false\nmax-tick-time=-1\n" > run/server.properties
+          (sleep 5; echo stop; sleep 900) | timeout 600 ./gradlew runServer --stacktrace || true
+          grep -q "Done (" run/logs/latest.log
+          ! grep -qi "level-type" run/logs/latest.log
+          python3 - <<'PY'
+          import gzip, pathlib
+          for f in pathlib.Path("run/world").rglob("*.dat"):
+              try:
+                  data = gzip.open(f).read()
+              except OSError:
+                  data = f.read_bytes()
+              if b"evenlargerbiomes:xxl_biomes" in data:
+                  print("World uses evenlargerbiomes:xxl_biomes (" + str(f) + ")")
+                  break
+          else:
+              raise SystemExit("World was not created with the XXL Biomes preset")
+          PY
+
+      - name: Upload server log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: server-log
+          if-no-files-found: ignore
+          path: run/logs/latest.log
