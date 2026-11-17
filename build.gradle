@@ -1,0 +1,61 @@
+plugins {
+    id 'net.fabricmc.fabric-loom' version "${loom_version}"
+    id 'maven-publish'
+}
+
+version = "${mod_version}+${minecraft_version}"
+group = mod_group_id
+
+base {
+    archivesName = mod_id
+}
+
+repositories {
+}
+
+loom {
+    mods {
+        "${mod_id}" {
+            sourceSet sourceSets.main
+        }
+    }
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+}
+
+processResources {
+    var replaceProperties = [
+            mod_id          : mod_id,
+            mod_name        : mod_name,
+            mod_version     : project.version,
+            mod_authors     : mod_authors,
+            mod_description : mod_description,
+            mod_license     : mod_license,
+            minecraft_range : minecraft_version_range,
+            loader_version  : loader_version,
+    ]
+    inputs.properties replaceProperties
+    filesMatching("fabric.mod.json") {
+        expand replaceProperties
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = 25
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
+}
+
+// Prints the compile classpath, so the sources can be checked with another compiler.
+tasks.register('printCompileClasspath') {
+    var cp = sourceSets.main.compileClasspath
+    doLast { println "CP=" + cp.asPath }
+}
