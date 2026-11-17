@@ -211,12 +211,13 @@ public final class ClimateMapRenderer {
             base = 0x2F8F1F;
         } else if (holder.is(BiomeTags.IS_SAVANNA)) {
             base = 0xA9A23A;
+        } else if (holder.is(BiomeTags.IS_MOUNTAIN)) {
+            // Before the snowy check, so snowy slopes, groves and peaks read as mountains rather than snowy plains.
+            base = snowy ? 0xA7AEB5 : 0x8C8C8C;
         } else if (snowy) {
             base = holder.is(BiomeTags.IS_TAIGA) || holder.is(BiomeTags.IS_FOREST) ? 0xBFD6D0 : 0xEEF3F7;
         } else if (holder.is(BiomeTags.IS_TAIGA)) {
             base = 0x3D6E5A;
-        } else if (holder.is(BiomeTags.IS_MOUNTAIN)) {
-            base = 0x8C8C8C;
         } else if (temperature >= 1.5F && !biome.hasPrecipitation()) {
             base = 0xE3CF7A; // desert-like
         } else if (holder.is(BiomeTags.IS_FOREST)) {

@@ -76,3 +76,6 @@ that checks the climate bands and prints `LANDMASS SELF-TEST PASSED`.
   values are kept, so switching back on restores them.
 - Settings files from Trini's Terrain are not read (different mod id and file name).
 - 26.x text colours need alpha (0xFFxxxxxx); mouse buttons start at 1 (use InputConstants constants).
+- Biome Size only resizes the humidity and temperature patches. Many biome borders (desert/badlands, plains/windswept,
+  mountain biomes) follow vanilla's erosion and weirdness, which shape the terrain too, so they keep vanilla's size; in
+  hot bands mountains show as badlands, which is vanilla's choice for hot peaks.
