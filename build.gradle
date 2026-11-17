@@ -16,11 +16,6 @@ dependencies {
     implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
 }
 
-// Lets CI type "stop" into the test server's console.
-tasks.matching { it.name == 'runServer' }.configureEach {
-    standardInput = System.in
-}
-
 processResources {
     var replaceProperties = [
             mod_id          : mod_id,

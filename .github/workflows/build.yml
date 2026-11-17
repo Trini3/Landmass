@@ -45,7 +45,18 @@ jobs:
           # The server only runs once the Minecraft EULA is accepted.
           echo "eula=true" > run/eula.txt
           printf "level-seed=20261117\nlevel-type=evenlargerbiomes\\:xxl_biomes\nonline-mode=false\nmax-tick-time=-1\n" > run/server.properties
-          (sleep 5; echo stop; sleep 900) | timeout 600 ./gradlew runServer --stacktrace || true
+          ./gradlew runServer --stacktrace > server-console.txt 2>&1 &
+          GRADLE_PID=$!
+          # Wait until the world has loaded, or the server has exited.
+          for i in $(seq 1 120); do
+            grep -qs "Done (" run/logs/latest.log && break
+            kill -0 $GRADLE_PID 2>/dev/null || break
+            sleep 5
+          done
+          # SIGTERM makes Minecraft save and shut down cleanly.
+          pkill -TERM -f devlaunchinjector || true
+          wait $GRADLE_PID || true
+          tail -n 30 server-console.txt
           grep -q "Done (" run/logs/latest.log
           ! grep -qi "level-type" run/logs/latest.log
           python3 - <<'PY'
@@ -68,4 +79,6 @@ jobs:
         with:
           name: server-log
           if-no-files-found: ignore
-          path: run/logs/latest.log
+          path: |
+            run/logs/latest.log
+            server-console.txt
