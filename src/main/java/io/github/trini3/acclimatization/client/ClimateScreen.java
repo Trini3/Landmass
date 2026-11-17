@@ -42,10 +42,6 @@ public class ClimateScreen extends Screen {
     private static final int MIN_HUMIDITY_ZONE = (int) Math.round(ClimateSettings.VANILLA_HUMIDITY_ZONE * ClimateSettings.MIN_HUMIDITY_SCALE);
     private static final int MAX_HUMIDITY_ZONE = 1_000_000;
     private static final int LIMIT_HUMIDITY_ZONE = (int) Math.round(ClimateSettings.VANILLA_HUMIDITY_ZONE * ClimateSettings.MAX_HUMIDITY_SCALE);
-    private static final int MIN_SIZE_PERCENT = 25;
-    private static final int MAX_SIZE_PERCENT = 2_500;
-    private static final int LIMIT_MIN_SIZE_PERCENT = (int) Math.round(100 * ClimateSettings.MIN_SIZE_SCALE);
-    private static final int LIMIT_MAX_SIZE_PERCENT = (int) Math.round(100 * ClimateSettings.MAX_SIZE_SCALE);
     private static final int GOLD = 0xFFAA00;
     private static final int TITLE_TOP = 8;
     private static final int PAGE_TOP = 22;
@@ -62,7 +58,6 @@ public class ClimateScreen extends Screen {
     private final int[] zoneWidths;
     private boolean zonesChanged;
     private double humidityScale;
-    private double biomeScale;
     private double waviness;
     private double desertShare;
     private ClimateDeviation deviation;
@@ -81,12 +76,11 @@ public class ClimateScreen extends Screen {
         this.initial = state.settings();
         this.zoneWidths = this.initial.latitude().zoneWidths();
         this.humidityScale = this.initial.humidityScale();
-        this.biomeScale = this.initial.biomeScale();
         this.waviness = this.initial.latitude().waviness();
         this.desertShare = this.initial.latitude().desertShare();
         this.deviation = this.initial.deviation();
 
-        BlockSetting[] rows = new BlockSetting[ZONES.length + 3];
+        BlockSetting[] rows = new BlockSetting[ZONES.length + 2];
         for (int i = 0; i < ZONES.length; i++) {
             int zone = i;
             rows[i] = new BlockSetting(KEY + "zone." + ZONES[i], "blocks", MIN_ZONE_WIDTH, MAX_ZONE_WIDTH, MIN_ZONE_WIDTH,
@@ -100,9 +94,7 @@ public class ClimateScreen extends Screen {
                 LIMIT_HUMIDITY_ZONE, (int) Math.round(this.humidityScale * ClimateSettings.VANILLA_HUMIDITY_ZONE),
                 blocks -> this.humidityScale = blocks / (double) ClimateSettings.VANILLA_HUMIDITY_ZONE);
         rows[ZONES.length] = this.humidityRow;
-        rows[ZONES.length + 1] = new BlockSetting(KEY + "biome_size", "percent", MIN_SIZE_PERCENT, MAX_SIZE_PERCENT, LIMIT_MIN_SIZE_PERCENT,
-                LIMIT_MAX_SIZE_PERCENT, (int) Math.round(this.biomeScale * 100), percent -> this.biomeScale = percent / 100.0);
-        rows[ZONES.length + 2] = linear(new BlockSetting(KEY + "waviness", "percent", 0, (int) Math.round(100 * LatitudeLayout.MAX_WAVINESS), 0,
+        rows[ZONES.length + 1] = linear(new BlockSetting(KEY + "waviness", "percent", 0, (int) Math.round(100 * LatitudeLayout.MAX_WAVINESS), 0,
                 (int) Math.round(100 * LatitudeLayout.LIMIT_MAX_WAVINESS), (int) Math.round(this.waviness * 100), percent -> this.waviness = percent / 100.0));
         this.zoneSettings = List.of(rows);
 
@@ -231,7 +223,7 @@ public class ClimateScreen extends Screen {
         if (this.desertShare != this.initial.latitude().desertShare()) {
             latitude = latitude.withDesertShare(this.desertShare);
         }
-        return this.initial.withLatitude(latitude).withHumidityScale(this.humidityScale).withBiomeScale(this.biomeScale).withDeviation(this.deviation);
+        return this.initial.withLatitude(latitude).withHumidityScale(this.humidityScale).withDeviation(this.deviation);
     }
 
     private void applyAndClose() {

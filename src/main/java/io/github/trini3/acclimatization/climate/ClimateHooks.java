@@ -88,9 +88,6 @@ public final class ClimateHooks {
         if (settings.get().humidityScale() != 1.0) {
             Acclimatization.LOGGER.info("  Humidity zones are {} times their vanilla size.", settings.get().humidityScale());
         }
-        if (settings.get().biomeScale() != 1.0) {
-            Acclimatization.LOGGER.info("  Biome patches are {} times their vanilla size.", settings.get().biomeScale());
-        }
         settings.get().deviation().describe().forEach(line -> Acclimatization.LOGGER.info("  {}", line));
     }
 
@@ -179,14 +176,14 @@ public final class ClimateHooks {
     }
 
     /**
-     * A copy of the settings whose temperature follows latitude, with humidity zones and biome patches resized. The original
+     * A copy of the settings whose temperature follows latitude, with humidity zones resized. The original
      * object is never modified: it belongs to the registry and may be shared with other dimensions or saved with the world.
      */
     public static NoiseGeneratorSettings withClimate(NoiseGeneratorSettings settings, Holder<NormalNoise> wanderNoise, ClimateSettings world, long seed) {
         NoiseRouter original = settings.noiseRouter();
-        double biomeSize = world.biomeScale();
-        DensityFunction humidity = HumidityBlend.of(original.vegetation(), world.humidityScale(), biomeSize);
-        DensityFunction mixing = biomeSize == 1.0 ? original.temperature() : new ScaleXZ(original.temperature(), biomeSize);
+        // Individual biomes keep vanilla's size: only the humidity zones around them are resized.
+        DensityFunction humidity = HumidityBlend.of(original.vegetation(), world.humidityScale(), 1.0);
+        DensityFunction mixing = original.temperature();
         Optional<DeviationZones> deviation = world.deviation().enabled() ? Optional.of(new DeviationZones(world.deviation(), seed)) : Optional.empty();
         if (deviation.isPresent() && world.deviation().humidity() > 0) {
             humidity = new HumidityDeviation(humidity, deviation.get());

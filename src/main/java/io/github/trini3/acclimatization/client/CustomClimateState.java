@@ -3,6 +3,8 @@ package io.github.trini3.acclimatization.client;
 import io.github.trini3.acclimatization.climate.ClimateSettings;
 import net.minecraft.client.gui.screens.worldselection.CreateWorldScreen;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.lang.ref.WeakReference;
 
 /**
@@ -25,6 +27,12 @@ public final class CustomClimateState {
             current = new CustomClimateState();
         }
         return current;
+    }
+
+    /** The Create World screen these settings belong to, while it's still around. */
+    @Nullable
+    public static CreateWorldScreen screen() {
+        return owner.get();
     }
 
     public boolean enabled() {

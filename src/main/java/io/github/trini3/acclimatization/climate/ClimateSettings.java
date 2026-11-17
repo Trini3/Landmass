@@ -26,26 +26,21 @@ import java.util.Optional;
  * the Create World screen writes it for a new world with the switch on, and server owners can add it by hand (an empty
  * {@code {}} gives the defaults). Kept in the world, so later changes to the mod can't put seams into existing terrain.
  *
- * <p>{@code humidityScale} resizes humidity zones (2 = twice vanilla's size); {@code biomeScale} resizes the humidity and
- * temperature patches that pick individual biomes. Terrain is never changed.
+ * <p>{@code humidityScale} resizes humidity zones (2 = twice vanilla's size). Terrain and biome sizes are never changed.
  */
-public record ClimateSettings(LatitudeLayout latitude, double humidityScale, double biomeScale, ClimateDeviation deviation) {
+public record ClimateSettings(LatitudeLayout latitude, double humidityScale, ClimateDeviation deviation) {
     public static final String FILE_NAME = Acclimatization.MODID + ".json";
     /** Roughly how far apart changes in humidity are in vanilla, measured along straight lines: about 375 blocks. */
     public static final int VANILLA_HUMIDITY_ZONE = 400;
     /** Humidity zones from 100 to 10,000,000 blocks. The settings screen's slider recommends up to 1,000,000. */
     public static final double MIN_HUMIDITY_SCALE = 0.25;
     public static final double MAX_HUMIDITY_SCALE = 25_000.0;
-    /** Biome sizes from 10% to 100,000% of vanilla's. The slider recommends 25% to 2,500%. */
-    public static final double MIN_SIZE_SCALE = 0.1;
-    public static final double MAX_SIZE_SCALE = 1_000.0;
 
-    public static final ClimateSettings DEFAULT = new ClimateSettings(LatitudeLayout.DEFAULT, 1.0, 1.0, ClimateDeviation.DEFAULT);
+    public static final ClimateSettings DEFAULT = new ClimateSettings(LatitudeLayout.DEFAULT, 1.0, ClimateDeviation.DEFAULT);
 
     public static final Codec<ClimateSettings> CODEC = RecordCodecBuilder.create(instance -> instance.group(
             CodecUtil.field(LatitudeLayout.MAP_CODEC.codec(), "latitude", LatitudeLayout.DEFAULT).forGetter(ClimateSettings::latitude),
             CodecUtil.field(Codec.doubleRange(MIN_HUMIDITY_SCALE, MAX_HUMIDITY_SCALE), "humidity_scale", 1.0).forGetter(ClimateSettings::humidityScale),
-            CodecUtil.field(Codec.doubleRange(MIN_SIZE_SCALE, MAX_SIZE_SCALE), "biome_scale", 1.0).forGetter(ClimateSettings::biomeScale),
             CodecUtil.field(ClimateDeviation.CODEC, "deviation", ClimateDeviation.DEFAULT).forGetter(ClimateSettings::deviation)
     ).apply(instance, ClimateSettings::new));
 
@@ -54,25 +49,21 @@ public record ClimateSettings(LatitudeLayout latitude, double humidityScale, dou
             + "Edit and restart the world to change them; only chunks generated afterwards are affected. Delete this file to turn "
             + "Custom Climate off for this world. polar_distance is in blocks from the equator. poles is repeat (past each pole the "
             + "zones come back in reverse) or frozen. zones are relative sizes: hot, warm, temperate and cold fill polar_distance, and "
-            + "frozen reaches from there to the pole. humidity_scale resizes humidity zones (2 = twice vanilla's size). biome_scale "
-            + "resizes the humidity and temperature patches inside them. deviation: patches where the climate jumps up to "
+            + "frozen reaches from there to the pole. humidity_scale resizes humidity zones (2 = twice vanilla's size). "
+            + "deviation: patches where the climate jumps up to "
             + "temperature_zones zones colder or warmer and humidity_zones humidity bands drier or wetter; size is their typical width "
             + "in blocks and frequency the share of the world they cover (0.05 = 5%, 0 = none).";
 
     public ClimateSettings withLatitude(LatitudeLayout latitude) {
-        return new ClimateSettings(latitude, this.humidityScale, this.biomeScale, this.deviation);
+        return new ClimateSettings(latitude, this.humidityScale, this.deviation);
     }
 
     public ClimateSettings withHumidityScale(double humidityScale) {
-        return new ClimateSettings(this.latitude, humidityScale, this.biomeScale, this.deviation);
-    }
-
-    public ClimateSettings withBiomeScale(double biomeScale) {
-        return new ClimateSettings(this.latitude, this.humidityScale, biomeScale, this.deviation);
+        return new ClimateSettings(this.latitude, humidityScale, this.deviation);
     }
 
     public ClimateSettings withDeviation(ClimateDeviation deviation) {
-        return new ClimateSettings(this.latitude, this.humidityScale, this.biomeScale, deviation);
+        return new ClimateSettings(this.latitude, this.humidityScale, deviation);
     }
 
     public static Path file(MinecraftServer server) {
@@ -134,6 +125,8 @@ public record ClimateSettings(LatitudeLayout latitude, double humidityScale, dou
         }
         Path folder = server.getWorldPath(LevelResource.ROOT).toAbsolutePath().normalize().getFileName();
         if (folder == null || !folder.toString().equals(armed.folder())) {
+            Acclimatization.LOGGER.warn("Custom Climate settings are waiting for a new world in folder {}, but this world's folder is {}",
+                    armed.folder(), folder);
             return Optional.empty();
         }
         pending = null;
