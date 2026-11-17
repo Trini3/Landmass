@@ -278,6 +278,7 @@ public final class ClimateHooks {
         if (world.coast().isPresent()) {
             router = BiomeScale.apply(router, world.coastScale(), 1.0);
         }
+        router = withBiomeErosion(router, world, continents);
         Optional<Aquifer.Config> aquifers = settings.aquifers();
         if (!world.features().aquifers()) {
             // Constant -1 makes every aquifer empty: no water at its own level in dips and caves, no flooded caves, no deep lava.
@@ -301,6 +302,37 @@ public final class ClimateHooks {
                 aquifers,
                 settings.useLegacyRandomSource(),
                 settings.debugFunctions());
+    }
+
+    /**
+     * The router with the erosion it picks biomes from stretched to the biome size (and the island biome size out at sea).
+     * Only the router's own erosion entry changes: the terrain (final density, depth, aquifers) keeps sampling erosion at
+     * its own size, so mountain ranges and terrain mods such as Lithosphere are untouched. Erosion decides badlands vs
+     * desert, windswept hills, meadows and the like, so without this those borders would stay vanilla-sized. Weirdness is
+     * left alone so river biomes stay on the rivers the terrain carves.
+     */
+    private static NoiseRouter withBiomeErosion(NoiseRouter router, WorldClimateSettings world, @Nullable Continents continents) {
+        double biomeSize = world.biomeScale();
+        boolean islands = continents != null && continents.splitsIslandBiomes();
+        if (biomeSize == 1.0 && !islands) {
+            return router;
+        }
+        DensityFunction erosion = router.erosion();
+        DensityFunction biomeErosion = scaleErosion(erosion, biomeSize);
+        if (islands) {
+            biomeErosion = continents.islandBlend(biomeErosion, scaleErosion(erosion, biomeSize * world.continents().islandBiomeScale()));
+        }
+        return new NoiseRouter(router.temperature(), router.vegetation(), router.continents(), biomeErosion, router.depth(), router.ridges(),
+                router.chunkSurfaceLevel(), router.finalDensity());
+    }
+
+    private static DensityFunction scaleErosion(DensityFunction erosion, double scale) {
+        if (scale == 1.0) {
+            return erosion;
+        }
+        NoiseRouter parts = new NoiseRouter(DensityFunctions.zero(), DensityFunctions.zero(), DensityFunctions.zero(), erosion,
+                DensityFunctions.zero(), DensityFunctions.zero(), DensityFunctions.zero(), DensityFunctions.zero());
+        return BiomeScale.apply(parts, 1.0, scale).erosion();
     }
 
     /** An aquifer config whose functions use the same continents and biome sizes as the terrain. */

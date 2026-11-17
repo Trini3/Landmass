@@ -24,11 +24,12 @@ Pick **Landmass Terrain** as the world type and press **Customize**. The section
 - **Presets**: built-in world scales (Default to Realistic) and your own saved presets.
 - **Climate**: pages **Zones** (zone widths, humidity zones, biome size, band waviness) and **Deviation**
   (climate deviation patches, desert share).
-- **Landmass**: pages **Continents** (Custom Landmass Generation on/off, Coast Size Override on/off with
-  its coast size, continent sizes, land share, island biome size), **Islands** (large islands, archipelagos,
+- **Landmass**: pages **Continents** (Custom Landmass Generation on/off, continent sizes, land share, island
+  biome size), **Islands** (large islands, archipelagos,
   small islands) and **Coasts** (Coastline features on/off, then land bridges, sand bars, straits, erosion and
   shores).
-- **Terrain**: switch off ravines, carver caves, lava lakes, aquifers or springs.
+- **Terrain**: switch off ravines, carver caves, lava lakes, aquifers or springs; Coast Size Override on/off with its
+  coast size.
 - **Structures**: switch off vanilla structure groups.
 
 Each number setting has a slider and a box for an exact number. The slider covers the recommended range; typed
@@ -50,7 +51,7 @@ datapacks such as Lithosphere or Streams Reflowing keep shaping the surface:
 - Coast width is only changed while **Coast Size Override** is on.
 - Shore shaping (steering erosion/weirdness near coasts) and gravel beaches only run with **Coastline
   features** on.
-- Island biome size never resizes erosion (Trini's Terrain did this outside compatibility mode).
+- Island biome size resizes only the erosion used for biome choice, never the terrain's.
 
 ## Commands
 
@@ -76,6 +77,8 @@ that checks the climate bands and prints `LANDMASS SELF-TEST PASSED`.
   values are kept, so switching back on restores them.
 - Settings files from Trini's Terrain are not read (different mod id and file name).
 - 26.x text colours need alpha (0xFFxxxxxx); mouse buttons start at 1 (use InputConstants constants).
-- Biome Size only resizes the humidity and temperature patches. Many biome borders (desert/badlands, plains/windswept,
-  mountain biomes) follow vanilla's erosion and weirdness, which shape the terrain too, so they keep vanilla's size; in
-  hot bands mountains show as badlands, which is vanilla's choice for hot peaks.
+- Biome Size resizes humidity and temperature patches and also the erosion the router picks biomes from (router.erosion
+  only; final density, depth and aquifers keep vanilla-size erosion), so badlands, windswept hills and similar grow while
+  terrain and Lithosphere-style mountains stay as they are. Side effect: biomes no longer match the land exactly (mountain
+  biomes can reach flat ground). Weirdness is not stretched so river biomes stay on carved rivers. Stretching erosion for
+  the terrain too was rejected: it reshapes mountain ranges. In hot bands mountains show as badlands (vanilla's hot peaks).

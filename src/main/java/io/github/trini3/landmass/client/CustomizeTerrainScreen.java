@@ -365,10 +365,13 @@ public class CustomizeTerrainScreen extends Screen {
     }
 
     private List<BlockSetting> tabSettings() {
+        if (this.tab == Tab.TERRAIN) {
+            return List.of(this.coastSizeRow);
+        }
         return this.page().map(page -> switch (page) {
             case ZONES -> this.zoneSettings;
             case DEVIATION -> this.deviationSettings;
-            case CONTINENTS -> Stream.concat(Stream.of(this.coastSizeRow), this.continentSettings.stream()).toList();
+            case CONTINENTS -> this.continentSettings;
             case ISLANDS -> this.islandSettings;
             case COASTS -> switch (this.coastPage) {
                 case BRIDGES -> this.bridgeSettings;
@@ -381,12 +384,15 @@ public class CustomizeTerrainScreen extends Screen {
     }
 
     /**
-     * The row the first number setting of the open page is on. Continents starts with the Custom Landmass Generation and Coast
-     * Size Override switches (the coast size row comes right after them), Coasts with its page buttons and the coastline
-     * features switch.
+     * The row the first number setting of the open page is on. Terrain has three rows of feature toggles and the Coast Size
+     * Override switch above its coast size row, Continents starts with the Custom Landmass Generation switch, Coasts with its
+     * page buttons and the coastline features switch.
      */
     private int firstSettingRow() {
-        return this.page().map(page -> page == Page.CONTINENTS || page == Page.COASTS ? 2 : 0).orElse(0);
+        if (this.tab == Tab.TERRAIN) {
+            return 4;
+        }
+        return this.page().map(page -> page == Page.COASTS ? 2 : page == Page.CONTINENTS ? 1 : 0).orElse(0);
     }
 
     private int rowTop(int row) {
@@ -484,6 +490,7 @@ public class CustomizeTerrainScreen extends Screen {
                 this.addToggle(left, 1, 0, feature + "lava_lakes", this.features.lavaLakes(), on -> this.features = this.features.withLavaLakes(on));
                 this.addToggle(left, 1, 1, feature + "aquifers", this.features.aquifers(), on -> this.features = this.features.withAquifers(on));
                 this.addToggle(left, 2, 0, feature + "springs", this.features.springs(), on -> this.features = this.features.withSprings(on));
+                this.addSwitch(left, 3, KEY + "coast_override", this.coastOverride, () -> this.coastOverride = !this.coastOverride);
             }
             case STRUCTURES -> {
                 WorldFeatures.StructureGroup[] groups = WorldFeatures.StructureGroup.values();
@@ -497,7 +504,6 @@ public class CustomizeTerrainScreen extends Screen {
                 if (this.landmassPage == Page.CONTINENTS) {
                     this.addSwitch(left, 0, KEY + "landmass_generation", this.continents.enabled(),
                             () -> this.continents = this.continents.withEnabled(!this.continents.enabled()));
-                    this.addSwitch(left, 1, KEY + "coast_override", this.coastOverride, () -> this.coastOverride = !this.coastOverride);
                 } else if (this.landmassPage == Page.COASTS) {
                     for (CoastPage each : CoastPage.values()) {
                         String key = KEY + "coasts.page." + each.name().toLowerCase(Locale.ROOT);
