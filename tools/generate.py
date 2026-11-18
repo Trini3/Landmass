@@ -17,7 +17,7 @@ import sys
 
 MOD = "evenlargerbiomes"
 # preset id -> size relative to vanilla Large Biomes
-PRESETS = {"larger_biomes": 1.5, "xl_biomes": 2.0, "xxl_biomes": 3.0}
+PRESETS = {"larger_biomes": 1.5, "xl_biomes": 2.0, "xxl_biomes": 3.0, "huge_biomes": 4.0, "giga_biomes": 8.0}
 SCALED = ("continents", "erosion", "temperature", "vegetation")
 LARGE_XZ_SCALE = 0.25
 

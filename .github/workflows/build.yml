@@ -36,7 +36,7 @@ jobs:
           name: evenlargerbiomes-jar
           path: build/libs/*.jar
 
-      # Starts a dedicated server on the XXL Biomes world type. If any of the mod's
+      # Starts a dedicated server on the Giga Biomes world type. If any of the mod's
       # world preset files were broken, the server would fail to load them.
       - name: Server test
         timeout-minutes: 15
@@ -44,7 +44,7 @@ jobs:
           mkdir -p run
           # The server only runs once the Minecraft EULA is accepted.
           echo "eula=true" > run/eula.txt
-          printf "level-seed=20261117\nlevel-type=evenlargerbiomes\\:xxl_biomes\nonline-mode=false\nmax-tick-time=-1\n" > run/server.properties
+          printf "level-seed=20261117\nlevel-type=evenlargerbiomes\\:giga_biomes\nonline-mode=false\nmax-tick-time=-1\n" > run/server.properties
           ./gradlew runServer --stacktrace > server-console.txt 2>&1 &
           GRADLE_PID=$!
           # Wait until the world has loaded, or the server has exited.
@@ -66,8 +66,8 @@ jobs:
                   data = gzip.open(f).read()
               except OSError:
                   data = f.read_bytes()
-              if b"evenlargerbiomes:xxl_biomes" in data:
-                  print("World uses evenlargerbiomes:xxl_biomes (" + str(f) + ")")
+              if b"evenlargerbiomes:giga_biomes" in data:
+                  print("World uses evenlargerbiomes:giga_biomes (" + str(f) + ")")
                   break
           else:
               raise SystemExit("World was not created with the XXL Biomes preset")
