@@ -1,6 +1,7 @@
 package io.github.trini3.landmasslite.climate;
 
 import io.github.trini3.landmasslite.Landmass;
+import io.github.trini3.landmasslite.compat.TerraBlenderCompat;
 import io.github.trini3.landmasslite.continents.Continents;
 import io.github.trini3.landmasslite.continents.ContinentsFunction;
 import net.minecraft.core.Holder;
@@ -94,6 +95,7 @@ public final class ClimateHooks {
         settings.deviation().describe().forEach(line -> Landmass.LOGGER.info("  {}", line));
         settings.features().describe().forEach(line -> Landmass.LOGGER.info("  {}", line));
         settings.effectiveContinents().describe().forEach(line -> Landmass.LOGGER.info("  {}", line));
+        TerraBlenderCompat.onServerStarting(server, settings);
     }
 
     public static void onServerStopped(MinecraftServer server) {

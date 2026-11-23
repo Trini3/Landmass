@@ -54,6 +54,9 @@ datapacks such as Lithosphere or Streams Reflowing keep shaping the surface:
 - Shore shaping (steering erosion/weirdness near coasts) and gravel beaches only run with **Coastline
   features** on.
 - Island biome size only resizes humidity and temperature patches, never erosion.
+- TerraBlender is optional. Biome mods built on it (Biomes O' Plenty, Regions Unexplored) work as in a Default world.
+  When it's installed, TerraBlender's biome regions (the patches where each mod's biomes are picked) also grow with
+  **Biome Size**, so one big biome isn't split between mods. At 100% they keep TerraBlender's own size.
 
 ## Commands
 
@@ -100,3 +103,10 @@ that checks the climate bands and prints `LANDMASS LITE SELF-TEST PASSED`.
   earlier don't open with 0.5.0; the author accepted that. The full mod now uses id `landmass` and package
   `io.github.trini3.landmass`. Never let the two share a mod id, Java package, namespace or config file name, or
   they can't be installed together. Class names (Landmass, LandmassGenerator) were kept; only packages differ.
+- TerraBlender support (0.5.0, `compat/TerraBlenderCompat`, same code as the full Landmass mod) needs no TerraBlender at
+  build time: at server start it reaches the `uniqueness` and `newUniqueness` fields TerraBlender's mixin adds to
+  `Climate.ParameterList` by reflection and wraps the region map so it's sampled at quart coordinates divided by Biome
+  Size, warped by smooth noise about one region cell in size so edges aren't blocky. `newUniqueness` must be wrapped
+  too, because TerraBlender clones the biome source per chunk and calls `recreateUniqueness`. If the fields change in a
+  later TerraBlender, it logs a warning and leaves the regions alone. Uses Biome Size even with Biome Size Scales Terrain
+  off (regions are about biome choice, not terrain). Written against TerraBlender's 26.3 branch; not run in game yet.

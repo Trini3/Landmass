@@ -18,5 +18,8 @@
     "fabric-api": "*",
     "minecraft": "${minecraft_range}",
     "java": ">=25"
+  },
+  "suggests": {
+    "terrablender": "*"
   }
 }
