@@ -38,7 +38,7 @@ jobs:
       - name: Upload mod jar
         uses: actions/upload-artifact@v4
         with:
-          name: landmass-jar
+          name: landmass_lite-jar
           path: build/libs/*.jar
 
       - name: Prepare test server
@@ -46,14 +46,14 @@ jobs:
           mkdir -p run-selftest
           # The self-test starts a real dedicated server, which only runs once the Minecraft EULA is accepted.
           echo "eula=true" > run-selftest/eula.txt
-          printf "level-seed=20261022\nlevel-type=landmass\\:landmass\nspawn-protection=0\nonline-mode=false\nmax-tick-time=-1\n" > run-selftest/server.properties
+          printf "level-seed=20261022\nlevel-type=landmass_lite\\:landmass_lite\nspawn-protection=0\nonline-mode=false\nmax-tick-time=-1\n" > run-selftest/server.properties
 
       - name: Self-test with vanilla worldgen
         timeout-minutes: 20
         run: ./gradlew runSelfTest --stacktrace
 
       - name: Check self-test result
-        run: grep -q "LANDMASS SELF-TEST PASSED" run-selftest/logs/latest.log
+        run: grep -q "LANDMASS LITE SELF-TEST PASSED" run-selftest/logs/latest.log
 
       - name: Upload self-test maps and log
         if: always()
@@ -62,8 +62,8 @@ jobs:
           name: selftest-vanilla
           if-no-files-found: ignore
           path: |
-            run-selftest/world/landmass-maps/
-            run-selftest/world/serverconfig/landmass-climate.json
+            run-selftest/world/landmass_lite-maps/
+            run-selftest/world/serverconfig/landmass_lite-climate.json
             run-selftest/logs/latest.log
 
   compat:
@@ -109,14 +109,14 @@ jobs:
           mkdir -p run-selftest
           # The self-test starts a real dedicated server, which only runs once the Minecraft EULA is accepted.
           echo "eula=true" > run-selftest/eula.txt
-          printf "level-seed=20261022\nlevel-type=landmass\\:landmass\nspawn-protection=0\nonline-mode=false\nmax-tick-time=-1\n" > run-selftest/server.properties
+          printf "level-seed=20261022\nlevel-type=landmass_lite\\:landmass_lite\nspawn-protection=0\nonline-mode=false\nmax-tick-time=-1\n" > run-selftest/server.properties
 
       - name: Self-test
         timeout-minutes: 25
         run: ./gradlew runSelfTest --stacktrace
 
       - name: Check self-test result
-        run: grep -q "LANDMASS SELF-TEST PASSED" run-selftest/logs/latest.log
+        run: grep -q "LANDMASS LITE SELF-TEST PASSED" run-selftest/logs/latest.log
 
       - name: Upload self-test maps and log
         if: always()
@@ -125,6 +125,6 @@ jobs:
           name: selftest-${{ matrix.id }}
           if-no-files-found: ignore
           path: |
-            run-selftest/world/landmass-maps/
-            run-selftest/world/serverconfig/landmass-climate.json
+            run-selftest/world/landmass_lite-maps/
+            run-selftest/world/serverconfig/landmass_lite-climate.json
             run-selftest/logs/latest.log

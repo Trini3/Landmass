@@ -8,8 +8,8 @@
   "license": "${mod_license}",
   "environment": "*",
   "entrypoints": {
-    "main": ["io.github.trini3.landmass.Landmass"],
-    "client": ["io.github.trini3.landmass.client.LandmassClient"]
+    "main": ["io.github.trini3.landmasslite.Landmass"],
+    "client": ["io.github.trini3.landmasslite.client.LandmassClient"]
   },
   "mixins": ["${mod_id}.mixins.json"],
   "accessWidener": "${mod_id}.classtweaker",

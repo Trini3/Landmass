@@ -1,0 +1,20 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "io.github.trini3.landmasslite.mixin",
+  "compatibilityLevel": "JAVA_25",
+  "mixins": [
+    "ChunkGeneratorAccessor",
+    "ChunkMapMixin",
+    "MinecraftServerMixin",
+    "NoiseBasedChunkGeneratorAccessor",
+    "RandomStateAccessor",
+    "RandomStateMixin"
+  ],
+  "client": [
+    "client.WorldCreationUiStateMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

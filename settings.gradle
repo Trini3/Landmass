@@ -9,4 +9,4 @@ pluginManagement {
     }
 }
 
-rootProject.name = 'landmass'
+rootProject.name = 'landmass_lite'

@@ -16,7 +16,7 @@ import urllib.request
 
 API = "https://api.modrinth.com/v2"
 GAME_VERSION = "26.3"
-HEADERS = {"User-Agent": "Trini3/landmass-ci (https://github.com/Trini3/landmass)"}
+HEADERS = {"User-Agent": "Trini3/landmass_lite-ci (https://github.com/Trini3/landmass)"}
 
 
 def get(url):

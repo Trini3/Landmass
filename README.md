@@ -1,4 +1,4 @@
-# Landmass
+# Landmass Lite
 
 A Fabric mod for Minecraft 26.3 that gives worlds a realistic climate layout: temperature follows
 latitude, with hot bands at the equator that get colder going north and south, until you reach the
@@ -6,20 +6,20 @@ frozen polar regions. Keep going past a pole and the bands come back in reverse,
 the top of a globe. Humidity still varies as you travel east or west, and near the equator it decides
 whether land is desert, savanna, forest or jungle.
 
-Landmass is the lighter, compatibility-first sister of Trini's Terrain Mod: climate bands and continents, with
+Landmass Lite is the lighter, compatibility-first sister of the full Landmass mod (formerly Trini's Terrain): climate bands and continents, with
 the terrain itself left to vanilla or your terrain mod.
 
 ## Installing
 
 You need Minecraft 26.3 with Fabric Loader 0.20.1 or newer and Fabric API, on Java 25. Put
-`landmass-<version>.jar` in your `mods` folder (on servers too). In singleplayer, open
-**Create New World > World**, set **World Type** to **Landmass Terrain**, and optionally press **Customize**.
-On a dedicated server, set `level-type=landmass:landmass` in `server.properties` before the world is first
+`landmass_lite-<version>.jar` in your `mods` folder (on servers too). In singleplayer, open
+**Create New World > World**, set **World Type** to **Landmass Lite**, and optionally press **Customize**.
+On a dedicated server, set `level-type=landmass_lite:landmass_lite` in `server.properties` before the world is first
 created. Other world types generate normally, and only the overworld is changed.
 
 ## Customize
 
-Pick **Landmass Terrain** as the world type and press **Customize**. The sections are tabs:
+Pick **Landmass Lite** as the world type and press **Customize**. The sections are tabs:
 
 - **Presets**: built-in world scales (Default to Realistic) and your own saved presets.
 - **Climate**: pages **Zones** (zone widths, humidity zones, biome size, band waviness) and **Deviation**
@@ -38,12 +38,12 @@ values as they stand, and right-click on it picks the spawn point. In game, **N*
 opens the world map.
 
 The settings are saved into the world at creation, then copied to
-`<world>/serverconfig/landmass-climate.json` on first start; that file governs the world afterwards.
-`config/landmass-common.toml` holds the defaults for new worlds.
+`<world>/serverconfig/landmass_lite-climate.json` on first start; that file governs the world afterwards.
+`config/landmass_lite-common.toml` holds the defaults for new worlds.
 
 ## Compatibility
 
-Landmass changes only the overworld (the `dimensions` list in the config), and only through the noise router's
+Landmass Lite changes only the overworld (the `dimensions` list in the config), and only through the noise router's
 temperature, humidity and continentalness, plus Biome Size's Large Biomes-style stretch. It never changes world height. Terrain mods and
 datapacks such as Lithosphere or Streams Reflowing keep shaping the surface:
 
@@ -62,22 +62,22 @@ datapacks such as Lithosphere or Streams Reflowing keep shaping the surface:
 ## Building
 
 `./gradlew build` (Java 25). GitHub Actions builds every push and runs `runSelfTest`, a dedicated server
-that checks the climate bands and prints `LANDMASS SELF-TEST PASSED`.
+that checks the climate bands and prints `LANDMASS LITE SELF-TEST PASSED`.
 
 ## Known issues
 
-- Landmass is cut from Trini's Terrain Fabric 0.21.1+26.3 and won't get its later terrain overhauls. 0.2.0
-  brought back everything except world height, mountain ranges and compatibility mode (Landmass is always
+- Landmass Lite is cut from Trini's Terrain (now Landmass) Fabric 0.21.1+26.3 and won't get its later terrain overhauls. 0.2.0
+  brought back everything except world height, mountain ranges and compatibility mode (Landmass Lite is always
   in what was compatibility mode, with coast size and coastline features as their own switches).
 - Presets keep the Coast Size Override, Custom Landmass Generation and Coastline features as they were;
-  Trini's Terrain presets set coast size, Landmass presets don't (coast size belongs to the terrain mod).
+  the full mod's presets set coast size, Landmass Lite presets don't (coast size belongs to the terrain mod).
 - Continents use the Coast Size Override (or 100%) for the width of their own coast ramp, so huge presets get
   vanilla-width coasts unless the override is on.
 - The Customize screen has a second row of page buttons, so rows sit 1px closer (20 instead of 21) on windows
   under 270 GUI pixels tall, and the summary line is left out where it would touch the bottom buttons.
 - Coastline features off = CoastFeatures.NONE, CoastErosion.NONE, Shores.NONE at generation time; the page
   values are kept, so switching back on restores them.
-- Settings files from Trini's Terrain are not read (different mod id and file name).
+- Settings files from the full Landmass mod are not read (different mod id and file name).
 - 26.x text colours need alpha (0xFFxxxxxx); mouse buttons start at 1 (use InputConstants constants).
 - Biome Size works like Large Biomes: it stretches the continentalness and erosion noises everywhere they're sampled
   (terrain and biome choice alike), plus local humidity/temperature. Stretching only the biome-picking erosion (0.3.0)
@@ -90,6 +90,13 @@ that checks the climate bands and prints `LANDMASS SELF-TEST PASSED`.
   still sizes coastal features. 0.4.0 also raised biome size, humidity zones and waviness for L to 3XL (old values in
   WorldPresets).
 - Lithosphere support is on hold: the Lithosphere Compatibility switch (0.4.1-0.4.3) was taken out in 0.4.4 and kept on
-  the `archive/lithosphere-compat` branch to pick up later. Landmass makes no Lithosphere-specific changes now; with
+  the `archive/lithosphere-compat` branch to pick up later. Landmass Lite makes no Lithosphere-specific changes now; with
   Lithosphere installed, its own land and oceans win over Custom Landmass Generation. 0.4.4 keeps the general speedup from
   0.4.3: Densities.rewriteAll/contains rewrite each density function once and keep shared functions shared.
+- 0.5.0 renamed this mod from "Landmass" to "Landmass Lite" because the full mod (formerly Trini's Terrain) took the
+  name Landmass. The mod id (`landmass` to `landmass_lite`), Java package (`io.github.trini3.landmasslite`), resource
+  namespace, world type (`landmass_lite:landmass_lite`), lang keys and file names (`landmass_lite-common.toml`,
+  `landmass_lite-climate.json`, `landmass_lite-maps/`, `landmass_lite-presets/`) all changed, so worlds from 0.4.4 or
+  earlier don't open with 0.5.0; the author accepted that. The full mod now uses id `landmass` and package
+  `io.github.trini3.landmass`. Never let the two share a mod id, Java package, namespace or config file name, or
+  they can't be installed together. Class names (Landmass, LandmassGenerator) were kept; only packages differ.
